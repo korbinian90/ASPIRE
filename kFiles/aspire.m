@@ -118,9 +118,11 @@ function [ data ] = getDefault(user_data)
     end
 
     % MCPC3D and MCPC3Di only with all_at_once
-    if (strcmpi(user_data.combination_mode(1:6), 'mcpc3d') && strcmpi(user_data.processing_option, 'slice_by_slice'))
-        disp([user_data.combination_mode ' only works with processing_option all_at_once']);
-        user_data.processing_option = 'all_at_once';
+    if (strcmpi(user_data.combination_mode(1:6), 'mcpc3d'))
+        if ~isfield(user_data, 'processing_option') || strcmpi(user_data.processing_option, 'slice_by_slice')
+            disp([user_data.combination_mode ' only works with processing_option all_at_once']);
+            user_data.processing_option = 'all_at_once';
+        end
     end
     
     data.slices = 1:user_data.dim(3);
@@ -287,7 +289,7 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
         scaled_fm = sum(compl(:,:,:,2,:) .* conj(compl(:,:,:,1,:)), 5);
         saveNii(data, i, 'aspire_getRPO', scaled_fm, 'scaled_fm');
     end
-
+    
     %% get RPO
     if strcmpi(data.combination_mode, 'composer')
         % COMPOSER

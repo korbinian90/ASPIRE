@@ -1,5 +1,5 @@
-ls
 clear all;
+aspire_startup
 for run=3
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
@@ -41,7 +41,8 @@ for run=3
             readfile_dirs = {'2','4'};
             write_dir = fullfile(sacher_dir, 'test/');
             data.unwrapping_method = 'mod';
-%             data.processing_option = 'all_at_once';
+            data.processing_option = 'all_at_once';
+            data.combination_mode = 'aspire';
         case 4
             % CSPA 0.5ms Test
             read_dir = cspa_dir;

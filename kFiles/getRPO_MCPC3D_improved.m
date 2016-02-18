@@ -14,9 +14,9 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl, weight )
     hermitian = sum(hermitian,5);
     
     % UNWRAP HIP
-    %unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian)); %TODO improve weigthing
-    unwrapped = angle(hermitian);
-    %[unwrapped, save] = preludeUnwrap(data.write_dir, angle(hermitian), weight);
+    unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian)); %TODO improve weigthing
+    % unwrapped = angle(hermitian); <- no unwrapping
+    %[unwrapped, save] = preludeUnwrap(data.write_dir, angle(hermitian), weight); <- experimental
     
     
     % SCALE
