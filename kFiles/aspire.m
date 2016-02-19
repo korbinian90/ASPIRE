@@ -7,18 +7,37 @@ function aspire(user_data)
     user_data = getHeaderInfo(user_data);
     % get default values for missing configuration
     data = getDefault(user_data);
+    
+    %% MAIN CALCULATION
+    if strcmpi(data.combination_mode, 'mcpc3di') && strcmpi(data.processing_option, 'slice_by_slice')
+        mcpc3diSliceBySlice(data);
+    else
+        allPipelines(data);
+    end
+    
+    %% POSTPROCESSING
+    if strcmpi(data.processing_option, 'slice_by_slice')
+        disp('concatenating slices with fslmerge');
+        concatImagesInSubdirs(data);
+    end
+    
+end
+
+
+function allPipelines(data)
+
     % get loop size to loop over all slices or do all at once if chosen
     if strcmpi(data.processing_option, 'all_at_once')
         slice_loop = 1;
     else
         slice_loop = length(data.slices);
     end
-            
+    
     if strcmpi(data.combination_mode, 'composer')
         data = preCompute_composer(data);
     end    
     
-    %% CALCULATION
+    % CALCULATION
     if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
         % do parallelized (only works when slice_by_slice)
         matlabpool('open', data.parallel);      
@@ -33,13 +52,8 @@ function aspire(user_data)
         end
     end
     
-    %% POSTPROCESSING
-    if strcmpi(data.processing_option, 'slice_by_slice')
-        disp('concatenating slices with fslmerge');
-        concatImagesInSubdirs(data);
-    end
-    
 end
+
 
 
 function allSteps(data, i)
@@ -111,14 +125,14 @@ function [ data ] = getDefault(user_data)
                 exit;
             end
         end
-        if (strcmpi(user_data.unwrapping_method, 'umpire') || strcmpi(user_data.unwrapping_method, 'mod'))
+        if (strcmpi(user_data.unwrapping_method_after_combination, 'umpire') || strcmpi(user_data.unwrapping_method_after_combination, 'mod'))
             disp(['UMPIRE based unwrapping not possible with ' int2str(user_data.n_echoes) ' echoes. No unwrapping performed.']);
-            user_data.unwrapping_method = '';
+            user_data.unwrapping_method_after_combination = '';
         end
     end
 
-    % MCPC3D and MCPC3Di only with all_at_once
-    if (strcmpi(user_data.combination_mode(1:6), 'mcpc3d'))
+    % MCPC3D only with all_at_once
+    if (strcmpi(user_data.combination_mode, 'mcpc3d'))
         if ~isfield(user_data, 'processing_option') || strcmpi(user_data.processing_option, 'slice_by_slice')
             disp([user_data.combination_mode ' only works with processing_option all_at_once']);
             user_data.processing_option = 'all_at_once';
@@ -130,7 +144,7 @@ function [ data ] = getDefault(user_data)
     data.processing_option = 'slice_by_slice';
     data.save_steps = 1;
     data.verbose = 0;
-    data.unwrapping_method = 'umpire';
+    data.unwrapping_method_after_combination = 'none';
     data.parallel = 0;
     data.wrap_estimator_range = [-2 3];
     data.write_channels = 1:4;
@@ -252,6 +266,7 @@ function saveNii(data, i, subdir, image, name, channels)
     
 end
 
+
 function [ filename ] = getNameForSlice(name, slice, cha)
 
 if nargin == 3
@@ -261,6 +276,7 @@ else
 end
 
 end
+
 
 function saveStruct(data, slice, subdir, save)
 %SAVESTRUCT saves all images from save to disk
@@ -322,7 +338,6 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
 end
 
 
-
 function [ unwrapped, save ] = unwrappingSelector(data, combined_phase, weight)
 %UNWRAPPINGSELECTOR calls the correct unwrapping method
     save = [];
@@ -332,29 +347,29 @@ function [ unwrapped, save ] = unwrappingSelector(data, combined_phase, weight)
         smooth_weight = [];
     end
         
-    if strcmpi(data.unwrapping_method, 'umpire')
+    if strcmpi(data.unwrapping_method_after_combination, 'umpire')
         [unwrapped, save] = umpire(combined_phase, data.TEs, smooth_weight);
     
-    elseif strcmpi(data.unwrapping_method, 'cusack')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'cusack')
         unwrapped = cusackUnwrap(combined_phase, weight);
     
-    elseif strcmpi(data.unwrapping_method, 'est')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'est')
         unwrapped = wrapEstimator(combined_phase, data.TEs, weight, data.wrap_estimator_range);
         
-    elseif strcmpi(data.unwrapping_method, 'mod')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'mod')
         [unwrapped, save] = umpireMod(combined_phase, data.TEs, smooth_weight);
         
     % experimental CHECK BEFORE USAGE
-    elseif strcmpi(data.unwrapping_method, 'mod2')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'mod2')
         unwrapped = umpireMod2(combined_phase, data.TEs, smooth_weight);
         
-    elseif strcmpi(data.unwrapping_method, 'median')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'median')
         unwrapped = umpireMedian(combined_phase, data.TEs, weight);
         
-    elseif strcmpi(data.unwrapping_method, 'umpire_quick')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'umpire_quick')
         unwrapped = umpireQuick(combined_phase, data.TEs);
         
-    elseif strcmpi(data.unwrapping_method, 'prelude')
+    elseif strcmpi(data.unwrapping_method_after_combination, 'prelude')
         unwrapped = preludeUnwrap(data, combined_phase, weight);
         
     % no unwrapping
@@ -455,7 +470,7 @@ function concatImages(folder, data_slices, image_name)
         [res, ~] = unix(unix_command);
 
         if res
-           disp(['Error concatenating ' image_name{1} '. (' unix_command ')']);
+           disp(['Error concatenating ' image_name '. (' unix_command ')']);
         else
             unix(['rm ' strjoin(filename_list)]);
             % only removes directory if it is already empty
@@ -466,3 +481,85 @@ function concatImages(folder, data_slices, image_name)
         centre_hdr_nii(filename);
         
 end
+
+
+%% MCPC3Di slice by slice option
+function mcpc3diSliceBySlice(data)
+
+    slice_loop = length(data.slices);
+    slices = data.slices;
+    
+    if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
+        % do parallelized (only works when slice_by_slice)
+        matlabpool('open', data.parallel);      
+    end
+    %% Calculate Hermitian inner product
+    hip = complex(zeros(data.dim, 'single'));
+    
+    parfor i = 1:slice_loop
+        % slice is the anatomical slice (i is the loop counter)
+        slice = slices(i);
+        disp(['First loop calculating slice: ' num2str(slice)]);
+        
+        % read in the data and get complex + weight (sum of mag)
+        compl = importImages(data, slice);
+        
+        hip(:,:,i) = calculateHip(data, compl);
+    end
+    clear compl;
+    
+    unwrappedHip = cusackUnwrap(angle(hip), abs(hip)); clear hip;
+
+    combined_phase = zeros([data.dim data.n_echoes], 'single');
+    weightVolume = zeros(data.dim, 'single');
+    parfor i = 1:slice_loop
+        slice = slices(i);
+        disp(['Second loop calculating slice: ' num2str(slice)]);
+        
+        %% read in the data and get complex + weight (sum of mag)
+        [compl, weight] = importImages(data, slice);
+        weightVolume(:,:,i) = weight;
+        
+        %% get RPO
+        rpo = getRPO_MCPC3D_improved_sliceBySlice(data, compl, weight, i, unwrappedHip(:,:,i));
+        
+        %% smooth RPO
+        rpo_smooth = smoothRPO(data, rpo, 5);
+
+        %% remove RPO
+        compl = removeRPO(data.n_echoes, compl, rpo_smooth);
+
+        %% combine
+        combined = sum(compl, 5);
+        
+        %% unwrap combined phase
+        combined_phase(:,:,i,:) = angle(combined);
+
+        %% save to disk
+        saveNii(data, i, 'results', combined_phase(:,:,i,:), 'combined_phase');
+        if data.save_steps
+            % ratio
+            ratio = calcRatio(data.n_echoes, combined, compl);
+            saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
+            saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
+            saveNii(data, i, 'steps', ratio, 'ratio');
+            saveNii(data, i, 'steps', weight, 'weight');
+        end
+        
+    end
+    
+    if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
+        % do parallelized (only works when slice_by_slice)
+        matlabpool('close');      
+    end
+    
+    if ~strcmpi(data.unwrapping_method_after_combination, 'none')
+        unwrapped = unwrappingSelector(data, combined_phase, weightVolume);
+
+        filenameUnwrapped = fullfile(data.write_dir, 'results', 'unwrapped.nii');
+        image_nii = make_nii(unwrapped, data.nii_pixdim(2:4));
+        centre_and_save_nii(image_nii, filenameUnwrapped, image_nii.hdr.dime.pixdim);
+    end
+    
+end
+

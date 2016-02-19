@@ -19,12 +19,13 @@ data.filename_phaseTextHeader = fullfile(data.read_dir, 'phase', 'text_header.tx
 write_dir = '/net/mri.meduniwien.ac.at/projects/radiology/swi/data/simon/cusp/results/KS_20160215_sep_slice';
 
 %% OPTIONS
-data.processing_option = 'all_at_once'; % choices: 'slice_by_slice', 'all_at_once'
-data.unwrapping_method = 'cusack'; % choices: 'umpire', 'cusack', 'mod', 'est'
+data.processing_option = 'slice_by_slice'; % choices: 'slice_by_slice', 'all_at_once'
+data.unwrapping_method_after_combination = 'cusack'; % choices: 'umpire', 'cusack', 'mod', 'est', 'none'
 data.combination_mode = 'mcpc3di'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
+data.save_steps = 1; % write processing steps
 data.write_channels = [1 2]; % processing steps for channels to be written
 
-% data.parallel = 0; % specify number of workers for parallel computation (only in slice_by_slice mode) 
+%data.parallel = 4; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 % data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
 % data.channels = [6 7]; % channels used for combination
 % data.mcpc3di_echoes = [2 3]; % echoes used for MCPC3Di combination

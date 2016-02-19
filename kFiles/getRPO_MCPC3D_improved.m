@@ -9,9 +9,7 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl, weight )
         echo = [1 2];
     end
     
-    % GET HIP
-    hermitian = compl(:,:,:,echo(2),:) .* conj(compl(:,:,:,echo(1),:));
-    hermitian = sum(hermitian,5);
+    hermitian = calculateHip(data, compl);
     
     % UNWRAP HIP
     unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian)); %TODO improve weigthing

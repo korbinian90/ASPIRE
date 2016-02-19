@@ -18,7 +18,7 @@ for run=3
             readfile_dirs = {'2','4'};
 %             data.readfile_dirs_ute = {'6','8'};
             data.processing_option = 'all_at_once'; % choices: 'slice_by_slice', 'all_at_once'
-            data.unwrapping_method = 'mod'; % choices: 'umpire', 'cusack', 'mod', 'est'
+            data.unwrapping_method_after_combination = 'mod'; % choices: 'umpire', 'cusack', 'mod', 'est'
             data.combination_mode = 'MCPC3D'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
 %             data.parallel = 0; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 %             data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
@@ -40,9 +40,9 @@ for run=3
             read_dir = cspa_dir;
             readfile_dirs = {'2','4'};
             write_dir = fullfile(sacher_dir, 'test/');
-            data.unwrapping_method = 'mod';
-            data.processing_option = 'all_at_once';
-            data.combination_mode = 'aspire';
+            data.unwrapping_method_after_combination = 'cusack';
+            data.processing_option = 'slice_by_slice';
+            data.combination_mode = 'mcpc3di';
         case 4
             % CSPA 0.5ms Test
             read_dir = cspa_dir;
@@ -60,7 +60,7 @@ for run=3
             readfile_dirs = {'22','24'};
             write_dir = fullfile(sacher_dir, 'CSPA/10/cusp2_mod/');
             data.parallel = 4;
-            data.unwrapping_method = 'mod';
+            data.unwrapping_method_after_combination = 'mod';
         case 7
             % CSPA comparison data isotrop 1ms
             read_dir = cspa_dir;
@@ -70,7 +70,7 @@ for run=3
 %             data.slices = 22;
             data.processing_option = 'all_at_once';
 %             data.write_channels = 1:32;
-            data.unwrapping_method = 'mod';
+            data.unwrapping_method_after_combination = 'mod';
             data.combination_mode = 'MCPC3D';
         case 8
             % CSPA 1,5ms
@@ -97,7 +97,7 @@ for run=3
             data.write_channels = [8 12 13 16 24 28 29 32];
             data.processing_option = 'slice_by_slice';
             data.combination_mode = 'aspire';
-            data.unwrapping_method = 'mod';
+            data.unwrapping_method_after_combination = 'mod';
             %TODO error when wrong option
         case 12
             % ABRC
@@ -109,13 +109,13 @@ for run=3
             data.write_channels = [8 12 13 16 24 28 29 32];
             data.processing_option = 'all_at_once';
             data.combination_mode = 'mcpc3d';
-            data.unwrapping_method = 'mod';
+            data.unwrapping_method_after_combination = 'mod';
             %TODO error when wrong option
         case 13
             % KREK
             read_dir = krek_dir;
             readfile_dirs = {'8','10'};
-            data.unwrapping_method = 'cusack';
+            data.unwrapping_method_after_combination = 'cusack';
 %             data.readfile_dirs_ute = {'2','4'};
             data.combination_mode = 'mcpc3di';
             write_dir = fullfile(sacher_dir,'noUnwrappingMcpc3diTest');%, data.combination_mode);
@@ -132,7 +132,7 @@ for run=3
             readfile_dirs = {'2','4'};
             % data.readfile_dirs_ute = {'6','8'};
             data.processing_option = 'all_at_once'; % choices: 'slice_by_slice', 'all_at_once'
-            data.unwrapping_method = 'mod'; % choices: 'umpire', 'cusack', 'mod', 'est'
+            data.unwrapping_method_after_combination = 'mod'; % choices: 'umpire', 'cusack', 'mod', 'est'
             data.combination_mode = 'mcpc3d'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
 %             data.parallel = 0; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 %             data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
