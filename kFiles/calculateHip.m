@@ -1,10 +1,4 @@
-function hermitian = calculateHip(data, compl)
-
-    if isfield(data,'mcpc3di_echoes')
-        echo = data.mcpc3di_echoes;
-    else
-        echo = [1 2];
-    end
+function hermitian = calculateHip(echo, compl)
     
     % GET HIP
     hermitian = compl(:,:,:,echo(2),:) .* conj(compl(:,:,:,echo(1),:));

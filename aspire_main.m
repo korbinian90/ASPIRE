@@ -125,6 +125,7 @@ for run=3
 %             data.channels = [1 32];
 %             data.write_channels = [1 2];
             data.mcpc3di_echoes = [2 3];
+            data.aspire_echoes = [2 4];
 %             data.slices = 50:51;
         case 14
             % local test

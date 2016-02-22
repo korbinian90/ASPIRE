@@ -1,4 +1,4 @@
-function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl, weight )
+function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
 %GETRPO_MCPC3D calculates the RPO of multi-echo phase using MCPC-3D
 %   Uses echoes 2 and 3
     
@@ -9,7 +9,7 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl, weight )
         echo = [1 2];
     end
     
-    hermitian = calculateHip(data, compl);
+    hermitian = calculateHip(data.mcpc3di_echoes, compl);
     
     % UNWRAP HIP
     unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian)); %TODO improve weigthing

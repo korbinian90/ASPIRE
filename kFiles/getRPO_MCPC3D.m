@@ -1,4 +1,4 @@
-function [ rpo ] = getRPO_MCPC3D( data, compl, weight )
+function [ rpo ] = getRPO_MCPC3D( data, compl )
 %GETRPO_MCPC3D calculates the RPO of multi-echo phase using MCPC-3D
 %   Uses echoes 2 and 3
 

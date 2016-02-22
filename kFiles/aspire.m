@@ -139,18 +139,16 @@ function [ data ] = getDefault(user_data)
         end
     end
     
-    data.slices = 1:user_data.dim(3);
-    data.combination_mode = 'aspire';
-    data.processing_option = 'slice_by_slice';
-    data.save_steps = 1;
-    data.verbose = 0;
-    data.unwrapping_method_after_combination = 'none';
-    data.parallel = 0;
-    data.wrap_estimator_range = [-2 3];
-    data.write_channels = 1:4;
-    data.weighted_smoothing = 1;
-    data.channels = []; % all channels are used
+    % cusack unwrapping needs all_at_once
+    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_option, 'cusack'))
+        disp('cusack unwrapping needs all_at_once');
+        user_data.processing_option = 'all_at_once';
+    end
     
+    % load default values
+    aspire_defaults;
+    
+    % apply defaults for missing values
     for user_selections = fieldnames(user_data)'
         data.(user_selections{1}) = user_data.(user_selections{1});
     end
@@ -302,7 +300,7 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
         scaled_fm = exp(1i * scaled_fm);
     elseif strcmp(data.combination_mode, 'cusp2') || strcmpi(data.combination_mode, 'aspire')
         % hermitian inner product combination
-        scaled_fm = sum(compl(:,:,:,2,:) .* conj(compl(:,:,:,1,:)), 5);
+        scaled_fm = sum(compl(:,:,:,data.aspire_echoes(2),:) .* conj(compl(:,:,:,data.aspire_echoes(1),:)), 5);
         saveNii(data, i, 'aspire_getRPO', scaled_fm, 'scaled_fm');
     end
     
@@ -311,9 +309,9 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
         % COMPOSER
         rpo = getRPO_composer(data, i);
     elseif strcmpi(data.combination_mode, 'MCPC3D')
-        rpo = getRPO_MCPC3D(data, compl, weight);
+        rpo = getRPO_MCPC3D(data, compl);
     elseif strcmpi(data.combination_mode, 'MCPC3Di')
-        [rpo, save] = getRPO_MCPC3D_improved(data, compl, weight);
+        [rpo, save] = getRPO_MCPC3D_improved(data, compl);
         saveStruct(data, i, 'MCPC3Di_getRPO', save); clear save;
     elseif strcmpi(data.combination_mode, 'MCPCC')
         rpo = getRPO_MCPCC(compl);
@@ -332,7 +330,7 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
        ~strcmpi(data.combination_mode, 'MCPCC')
    
         saveNii(data, i, 'steps', rpo, 'rpo_not_smooth', data.write_channels);
-        rpo = smoothRPO(data, rpo, 5);
+        rpo = smoothRPO(data, rpo, 5, weight);
     end
     
 end
@@ -404,14 +402,18 @@ function [ compl ] = removeRPO(nEchoes, compl, rpo_smooth)
 end
 
 
-function [ smoothed_rpo ] = smoothRPO(data, rpo, sigma_size)
+function [ smoothed_rpo ] = smoothRPO(data, rpo, sigma_size, weight)
 %SMOOTHRPO Smoothes the RPO
 %   TODO: kernel_size
     smoothed_rpo = complex(zeros(size(rpo),'single'));
     % assuming same size in x and y dimension
     sigma_size_pix = sigma_size / data.nii_pixdim(2);
+    % toggle smoothing
+    if ~data.rpo_weigthedSmoothing
+        weight = [];
+    end
     for cha = 1:data.n_channels
-        smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size_pix);
+        smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size_pix, weight);
     end
 
 end
@@ -504,7 +506,7 @@ function mcpc3diSliceBySlice(data)
         % read in the data and get complex + weight (sum of mag)
         compl = importImages(data, slice);
         
-        hip(:,:,i) = calculateHip(data, compl);
+        hip(:,:,i) = calculateHip(data.mcpc3di_echoes, compl);
     end
     clear compl;
     
@@ -521,7 +523,7 @@ function mcpc3diSliceBySlice(data)
         weightVolume(:,:,i) = weight;
         
         %% get RPO
-        rpo = getRPO_MCPC3D_improved_sliceBySlice(data, compl, weight, i, unwrappedHip(:,:,i));
+        rpo = getRPO_MCPC3D_improved_sliceBySlice(data, compl, unwrappedHip(:,:,i));
         
         %% smooth RPO
         rpo_smooth = smoothRPO(data, rpo, 5);
@@ -562,4 +564,3 @@ function mcpc3diSliceBySlice(data)
     end
     
 end
-

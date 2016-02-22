@@ -25,6 +25,7 @@ data.combination_mode = 'mcpc3di'; % choices: 'aspire', 'cusp3', 'composer', 'MC
 data.save_steps = 1; % write processing steps
 data.write_channels = [1 2]; % processing steps for channels to be written
 
+% data.rpo_weigthedSmoothing = 1;
 %data.parallel = 4; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 % data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
 % data.channels = [6 7]; % channels used for combination
