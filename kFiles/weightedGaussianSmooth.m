@@ -13,7 +13,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
     else
         weighting_image = double(abs(varargin{1}));
         % to avoid singularities
-        weighting_image(weighting_image <= 0) = min(weighting_image(weighting_image >= 0));
+        weighting_image(weighting_image <= 0) = min(weighting_image(weighting_image > 0));
     end
     if size(weighting_image) ~= dimension
        error('weight and image must have same dimensions!');

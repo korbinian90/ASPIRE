@@ -114,6 +114,9 @@ end
 function [ data ] = getDefault(user_data)
 %GETDEFAULT Sets default values, if they are missing
     
+    % load default values
+    aspire_defaults;
+
     % check for enough echoes for UMPIRE
     if (user_data.n_echoes < 3)
         if (strcmpi(user_data.combination_mode, 'umpire') || strcmpi(user_data.combination_mode, 'cusp3'))
@@ -140,13 +143,10 @@ function [ data ] = getDefault(user_data)
     end
     
     % cusack unwrapping needs all_at_once
-    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_option, 'cusack'))
+    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_method_after_combination, 'cusack'))
         disp('cusack unwrapping needs all_at_once');
         user_data.processing_option = 'all_at_once';
     end
-    
-    % load default values
-    aspire_defaults;
     
     % apply defaults for missing values
     for user_selections = fieldnames(user_data)'
@@ -188,7 +188,7 @@ function [ compl, weight ] = importImages(data, real_slice)
 
     %% precomputation steps
     mag = single(mag_nii.img);
-    mag(mag <= 0) = min(mag(mag >= 0));
+    mag(mag <= 0) = min(mag(mag > 0));
     phase = rescale(single(phase_nii.img), -pi, pi);
     compl = mag .* exp(single(1i * phase));
     
