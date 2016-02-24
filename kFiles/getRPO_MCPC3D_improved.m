@@ -37,6 +37,6 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
     rpo = exp(1i * squeeze(rpo));
     
     save = toSave([], hermitian, 'hermitian');
-    save = toSave(save, unwrapped, 'unwrapped');
+    save = toSave(save, unwrapped, 'unwrappedHermitian');
     
 end

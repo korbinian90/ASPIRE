@@ -15,4 +15,3 @@ function [ rpo, save ] = getRPO_aspire(data, compl)
     end
     
 end
-
