@@ -40,7 +40,7 @@ for id = id_list
             else
                 readfile_dirs = id_readfile_dirs_aspire{id};
                 data.parallel = 0;
-                data.processing_option = 'slice_by_slice';
+                data.processing_option = 'all_at_once';
             end
 
 

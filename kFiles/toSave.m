@@ -1,6 +1,6 @@
 function [ save ] = toSave( save, image, name )
-%TOSAVE Summary of this function goes here
-%   Detailed explanation goes here
+%TOSAVE creates a struct, which can be written to disk in aspire.m
+% use saveStruct() in aspire.m to to save this.
 
     if ~isstruct(save)
         save = struct();%'filenames', name, 'images', image);

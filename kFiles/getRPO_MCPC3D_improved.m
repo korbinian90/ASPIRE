@@ -12,7 +12,10 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
     hermitian = calculateHip(data.mcpc3di_echoes, compl);
     
     % UNWRAP HIP
-    unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian)); %TODO improve weigthing
+    unwrappingData = data;
+    unwrappingData.unwrapping_method = data.mcpc3di_unwrapping_method;
+    unwrapped = unwrappingSelector(unwrappingData, angle(hermitian), abs(hermitian));
+    %unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian));
     % unwrapped = angle(hermitian); <- no unwrapping
     %[unwrapped, save] = preludeUnwrap(data.write_dir, angle(hermitian), weight); <- experimental
     

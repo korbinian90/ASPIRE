@@ -16,15 +16,17 @@ data.filename_mag = fullfile(data.read_dir, 'mag', 'Image.nii');
 data.filename_magTextHeader = fullfile(data.read_dir, 'mag', 'text_header.txt');
 data.filename_phase = fullfile(data.read_dir, 'phase', 'Image.nii');
 data.filename_phaseTextHeader = fullfile(data.read_dir, 'phase', 'text_header.txt');
-write_dir = '/net/mri.meduniwien.ac.at/projects/radiology/swi/data/simon/cusp/results/KS_20160215_sep_slice';
+write_dir = '/sacher/melange/users/keckstein/data/ASPIRE/ks_magScale_test/';
 
 %% OPTIONS
-data.processing_option = 'slice_by_slice'; % choices: 'slice_by_slice', 'all_at_once'
-data.unwrapping_method_after_combination = 'cusack'; % choices: 'umpire', 'cusack', 'mod', 'est', 'none'
+data.processing_option = 'all_at_once'; % choices: 'slice_by_slice', 'all_at_once'
+unwrapping_method_after_combination = 'cusack'; % choices: 'umpire', 'cusack', 'mod', 'est', 'none'
+unwrapping_method_for_combination = 'cusack'; % choices: 'cusack', 'none'
 data.combination_mode = 'mcpc3di'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
 data.save_steps = 1; % write processing steps
 data.write_channels = [1 2]; % processing steps for channels to be written
 
+% data.prelude_mask_threshold = 200;
 % data.rpo_weigthedSmoothing = 1;
 %data.parallel = 4; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 % data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
@@ -32,6 +34,8 @@ data.write_channels = [1 2]; % processing steps for channels to be written
 % data.mcpc3di_echoes = [2 3]; % echoes used for MCPC3Di combination
 
 data.write_dir = fullfile(write_dir, data.combination_mode);
+data.unwrapping_method = unwrapping_method_after_combination;
+data.mcpc3di_unwrapping_method = unwrapping_method_for_combination;
 
 % run APSIRE
 tic;

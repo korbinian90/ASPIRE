@@ -11,8 +11,6 @@ function [ scaled_fm, save ] = getFM_umpire( TEs, compl, weight )
     [fm, time, save] = umpire2(angle(fm2), dt2, angle(fm1), dt1, weight);
     
     scaled_fm = fm * (TEs(1)/time);
-
-    save = toSave(save, scaled_fm, 'scaled_fm');
     
 end
 

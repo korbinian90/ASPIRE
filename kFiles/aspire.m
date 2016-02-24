@@ -5,6 +5,8 @@ function aspire(user_data)
     setupFolder(user_data);
     % get basic header info
     user_data = getHeaderInfo(user_data);
+    % check for impossible options
+    user_data = checkForWrongOptions(user_data);
     % get default values for missing configuration
     data = getDefault(user_data);
     
@@ -55,7 +57,6 @@ function allPipelines(data)
 end
 
 
-
 function allSteps(data, i)
 % this function does all of the work (calling other functions)        
 
@@ -70,7 +71,7 @@ function allSteps(data, i)
     %% read in the data and get complex + weight (sum of mag)
     [compl, weight] = importImages(data, slice);
 
-    % TIMING BEGIN
+    % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
        time = toc;
        disp('Finished loading images, calculating...');
@@ -85,7 +86,7 @@ function allSteps(data, i)
     %% combine
     combined = sum(compl, 5);
 
-    % TIMING END
+    % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
        disp(['Time for combination: ' secs2hms(toc-time)]);
     end    
@@ -94,7 +95,7 @@ function allSteps(data, i)
     combined_phase = angle(combined);
     [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, weight);
     
-    % ratio
+    %% ratio
     ratio = calcRatio(data.n_echoes, combined, compl);
     
     %% save to disk
@@ -111,13 +112,9 @@ function allSteps(data, i)
 end
 
 
-function [ data ] = getDefault(user_data)
-%GETDEFAULT Sets default values, if they are missing
-    
-    % load default values
-    aspire_defaults;
+function user_data = checkForWrongOptions(user_data)
 
-    % check for enough echoes for UMPIRE
+ % check for enough echoes for UMPIRE
     if (user_data.n_echoes < 3)
         if (strcmpi(user_data.combination_mode, 'umpire') || strcmpi(user_data.combination_mode, 'cusp3'))
             disp(['UMPIRE based combination not possible with ' int2str(user_data.n_echoes) ' echoes']);
@@ -128,9 +125,9 @@ function [ data ] = getDefault(user_data)
                 exit;
             end
         end
-        if (strcmpi(user_data.unwrapping_method_after_combination, 'umpire') || strcmpi(user_data.unwrapping_method_after_combination, 'mod'))
+        if (strcmpi(user_data.unwrapping_method, 'umpire') || strcmpi(user_data.unwrapping_method, 'mod'))
             disp(['UMPIRE based unwrapping not possible with ' int2str(user_data.n_echoes) ' echoes. No unwrapping performed.']);
-            user_data.unwrapping_method_after_combination = '';
+            user_data.unwrapping_method = 'none';
         end
     end
 
@@ -143,10 +140,19 @@ function [ data ] = getDefault(user_data)
     end
     
     % cusack unwrapping needs all_at_once
-    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_method_after_combination, 'cusack'))
+    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_method, 'cusack'))
         disp('cusack unwrapping needs all_at_once');
         user_data.processing_option = 'all_at_once';
     end
+
+end
+
+
+function [ data ] = getDefault(user_data)
+%GETDEFAULT Sets default values, if they are missing
+        
+    % load default values
+    aspire_defaults;
     
     % apply defaults for missing values
     for user_selections = fieldnames(user_data)'
@@ -188,8 +194,9 @@ function [ compl, weight ] = importImages(data, real_slice)
 
     %% precomputation steps
     mag = single(mag_nii.img);
-    mag(mag <= 0) = min(mag(mag > 0));
-    phase = rescale(single(phase_nii.img), -pi, pi);
+    mag(mag <= 0) = 0;
+    mag = single(rescale(mag, 0.01, 4095));
+    phase = single(rescale(phase_nii.img, -pi, pi));
     compl = mag .* exp(single(1i * phase));
     
     % use the sum of magnitudes as weight (all channels and all echoes
@@ -235,20 +242,20 @@ function saveNii(data, i, subdir, image, name, channels)
         else
             save_image = angle(image);
         end
-
         
+        % if image is 5D, save each channel in seperate 4D image
         if ndims(image) == 5
-           for cha = 1:size(image,5)
-            if all_at_once
-                filename = fullfile(dir, [name '_c' num2str(channels(cha)) '.nii']);
-            else
-                % name for single slice
-                filename = fullfile(sep_dir, getNameForSlice(name, data.slices(i), channels(cha)));
-            end
+            for cha = 1:size(image,5)
+                if all_at_once
+                    filename = fullfile(dir, [name '_c' num2str(channels(cha)) '.nii']);
+                else
+                    % name for single slice
+                    filename = fullfile(sep_dir, getNameForSlice(name, data.slices(i), channels(cha)));
+                end
 
-            image_nii = make_nii(single(save_image(:,:,:,:,cha)), pixdim);
-            centre_and_save_nii(image_nii, filename, image_nii.hdr.dime.pixdim); 
-           end
+                image_nii = make_nii(single(save_image(:,:,:,:,cha)), pixdim);
+                centre_and_save_nii(image_nii, filename, image_nii.hdr.dime.pixdim); 
+            end
         else
             if all_at_once
                 filename = fullfile(dir, [name '.nii']);
@@ -266,12 +273,12 @@ end
 
 
 function [ filename ] = getNameForSlice(name, slice, cha)
-
-if nargin == 3
-    filename = [name '_c' num2str(cha) '_' num2str(slice) '.nii'];
-else
-    filename = [name '_' num2str(slice) '.nii'];
-end
+%GETNAMEFORSLICE get a standard name for a slice
+    if nargin == 3
+        filename = [name '_c' num2str(cha) '_' num2str(slice) '.nii'];
+    else
+        filename = [name '_' num2str(slice) '.nii'];
+    end
 
 end
 
@@ -283,30 +290,15 @@ function saveStruct(data, slice, subdir, save)
             saveNii(data, slice, subdir, save.images{i}, save.filenames{i});
         end
     end
-    
 end
 
 
 function [ rpo ] = getRPOSelector(data, compl, weight, i)
-%GETRPOSELECTOR calls the selected method for obtaining the RPO
-
-    %% for ASPIRE and CUSP3 get scaled FM
-    % get an estimate of the DB0 development for the first echo time
-    if strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3')
-        [scaled_fm, save] = getFM_umpire(data.TEs, compl, weight);
-        % write intermediate steps to disc
-        saveStruct(data, i, 'cusp3_getRPO', save); clear save;
-        % calculate scaled fieldmap
-        scaled_fm = exp(1i * scaled_fm);
-    elseif strcmp(data.combination_mode, 'cusp2') || strcmpi(data.combination_mode, 'aspire')
-        % hermitian inner product combination
-        scaled_fm = sum(compl(:,:,:,data.aspire_echoes(2),:) .* conj(compl(:,:,:,data.aspire_echoes(1),:)), 5);
-        saveNii(data, i, 'aspire_getRPO', scaled_fm, 'scaled_fm');
-    end
+%GETRPOSELECTOR calls the selected method for obtaining the RPO and smooths
+%it
     
     %% get RPO
     if strcmpi(data.combination_mode, 'composer')
-        % COMPOSER
         rpo = getRPO_composer(data, i);
     elseif strcmpi(data.combination_mode, 'MCPC3D')
         rpo = getRPO_MCPC3D(data, compl);
@@ -317,10 +309,12 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
         rpo = getRPO_MCPCC(compl);
     elseif strcmpi(data.combination_mode, 'add')
         rpo = complex(ones(data.dim(1:4),'single'));
-    else
-        % both CUSP versions
-        % subtract FM to get RPO
-        rpo = getRPO_aspire(data, compl, scaled_fm);
+    elseif strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3')
+        [rpo, save] = getRPO_aspireUmpire(data, compl, weight);
+        saveStruct(data, i, 'cusp3_getRPO', save); clear save;
+    elseif strcmp(data.combination_mode, 'cusp2') || strcmpi(data.combination_mode, 'aspire')
+        [rpo, save] = getRPO_aspire(data, compl);
+        saveStruct(data, i, 'aspire_getRPO', save); clear save;
     end
 
     %% smooth RPO
@@ -330,64 +324,9 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
        ~strcmpi(data.combination_mode, 'MCPCC')
    
         saveNii(data, i, 'steps', rpo, 'rpo_not_smooth', data.write_channels);
-        rpo = smoothRPO(data, rpo, 5, weight);
+        rpo = smoothRPO(data, rpo, weight);
     end
     
-end
-
-
-function [ unwrapped, save ] = unwrappingSelector(data, combined_phase, weight)
-%UNWRAPPINGSELECTOR calls the correct unwrapping method
-    save = [];
-    if (data.weighted_smoothing)
-        smooth_weight = weight;
-    else
-        smooth_weight = [];
-    end
-        
-    if strcmpi(data.unwrapping_method_after_combination, 'umpire')
-        [unwrapped, save] = umpire(combined_phase, data.TEs, smooth_weight);
-    
-    elseif strcmpi(data.unwrapping_method_after_combination, 'cusack')
-        unwrapped = cusackUnwrap(combined_phase, weight);
-    
-    elseif strcmpi(data.unwrapping_method_after_combination, 'est')
-        unwrapped = wrapEstimator(combined_phase, data.TEs, weight, data.wrap_estimator_range);
-        
-    elseif strcmpi(data.unwrapping_method_after_combination, 'mod')
-        [unwrapped, save] = umpireMod(combined_phase, data.TEs, smooth_weight);
-        
-    % experimental CHECK BEFORE USAGE
-    elseif strcmpi(data.unwrapping_method_after_combination, 'mod2')
-        unwrapped = umpireMod2(combined_phase, data.TEs, smooth_weight);
-        
-    elseif strcmpi(data.unwrapping_method_after_combination, 'median')
-        unwrapped = umpireMedian(combined_phase, data.TEs, weight);
-        
-    elseif strcmpi(data.unwrapping_method_after_combination, 'umpire_quick')
-        unwrapped = umpireQuick(combined_phase, data.TEs);
-        
-    elseif strcmpi(data.unwrapping_method_after_combination, 'prelude')
-        unwrapped = preludeUnwrap(data, combined_phase, weight);
-        
-    % no unwrapping
-    else
-        unwrapped = combined_phase;
-    end
-
-end
-
-
-function [ rpo ] = getRPO_aspire(data, compl, scaled_fm)
-%GETRPO Subtracts the scaled fieldmap from the first echo to get the RPO
-
-    size_compl = size(compl);
-    rpo = complex(zeros([size_compl(1:3) size_compl(5)], 'single'));
-    for cha = 1:data.n_channels
-        rpo_temp = double(compl(:,:,:,1,cha)) .* double(conj(scaled_fm));
-        rpo(:,:,:,cha) = single(rpo_temp ./ abs(rpo_temp));
-    end
-
 end
 
 
@@ -396,17 +335,17 @@ function [ compl ] = removeRPO(nEchoes, compl, rpo_smooth)
 % keeps the magnitude values
 
     for eco = 1:nEchoes
-       compl(:,:,:,eco,:) = squeeze(compl(:,:,:,eco,:)) .* squeeze(conj(rpo_smooth)) ./ squeeze(abs(rpo_smooth));
+        compl(:,:,:,eco,:) = squeeze(compl(:,:,:,eco,:)) .* squeeze(conj(rpo_smooth)) ./ squeeze(abs(rpo_smooth));
     end
 
 end
 
 
-function [ smoothed_rpo ] = smoothRPO(data, rpo, sigma_size, weight)
+function [ smoothed_rpo ] = smoothRPO(data, rpo, weight)
 %SMOOTHRPO Smoothes the RPO
-%   TODO: kernel_size
     smoothed_rpo = complex(zeros(size(rpo),'single'));
     % assuming same size in x and y dimension
+    sigma_size = data.smoothingKernelSize;
     sigma_size_pix = sigma_size / data.nii_pixdim(2);
     % toggle smoothing
     if ~data.rpo_weigthedSmoothing
@@ -439,7 +378,6 @@ function concatImagesInSubdirs(data)
         folder = fullfile(data.write_dir, subdirs(i).name);
             
         while isdir(fullfile(folder, 'sep'))
-
             files = dir(fullfile(folder, 'sep/*.nii'));
             if isempty(files)
                 break;
@@ -449,10 +387,7 @@ function concatImagesInSubdirs(data)
             name = filename(1:ending(end)-1);
 
             concatImages(folder, data.slices, name);
-                
-            
         end
-        
     end
 
 end
@@ -510,7 +445,9 @@ function mcpc3diSliceBySlice(data)
     end
     clear compl;
     
-    unwrappedHip = cusackUnwrap(angle(hip), abs(hip)); clear hip;
+    unwrappingData = data;
+    unwrappingData.unwrapping_method = data.mcpc3di_unwrapping_method;
+    unwrappedHip = unwrappingSelector(unwrappingData, angle(hip), abs(hip)); clear hip;
 
     combined_phase = zeros([data.dim data.n_echoes], 'single');
     weightVolume = zeros(data.dim, 'single');
@@ -526,7 +463,7 @@ function mcpc3diSliceBySlice(data)
         rpo = getRPO_MCPC3D_improved_sliceBySlice(data, compl, unwrappedHip(:,:,i));
         
         %% smooth RPO
-        rpo_smooth = smoothRPO(data, rpo, 5);
+        rpo_smooth = smoothRPO(data, rpo);
 
         %% remove RPO
         compl = removeRPO(data.n_echoes, compl, rpo_smooth);
@@ -555,7 +492,7 @@ function mcpc3diSliceBySlice(data)
         matlabpool('close');      
     end
     
-    if ~strcmpi(data.unwrapping_method_after_combination, 'none')
+    if ~strcmpi(data.unwrapping_method, 'none')
         unwrapped = unwrappingSelector(data, combined_phase, weightVolume);
 
         filenameUnwrapped = fullfile(data.write_dir, 'results', 'unwrapped.nii');
