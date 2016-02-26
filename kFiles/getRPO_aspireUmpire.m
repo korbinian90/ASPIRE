@@ -2,7 +2,8 @@ function [ rpo, save ] = getRPO_aspireUmpire( data, compl, weight )
 %GETRPO_ASPIREUMPIRE calculates the RPO with the aspireUmpire method
 
     % calculate scaled fieldmap
-    [scaled_fm, save] = getFM_umpire(data.TEs, compl, weight);
+    sigma = data.smoothingKernelSizeInVoxel;
+    [scaled_fm, save] = getFM_umpire(data.TEs, compl, weight, sigma);
     save = toSave(save, scaled_fm, 'scaled_fm');
     scaled_fm = exp(1i * scaled_fm);
     

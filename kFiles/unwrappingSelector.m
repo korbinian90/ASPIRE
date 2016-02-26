@@ -34,7 +34,9 @@ function [ unwrapped, save ] = unwrappingSelector(data, combined_phase, weight)
         
     % no unwrapping
     else
-        disp(['unwrapping method: ' data.unwrapping_method ' not available. No unwrapping performed in this step.']);
+        if ~strcmpi(data.unwrapping_method, 'none') && ~strcmpi(data.unwrapping_method, '')
+            disp(['unwrapping method: ' data.unwrapping_method ' not available. No unwrapping performed in this step.']);
+        end
         unwrapped = combined_phase;
     end
 

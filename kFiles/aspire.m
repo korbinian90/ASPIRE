@@ -144,6 +144,14 @@ function user_data = checkForWrongOptions(user_data)
         disp('cusack unwrapping needs all_at_once');
         user_data.processing_option = 'all_at_once';
     end
+    
+    % umpire ddTE ~= 0
+    if (strcmpi(user_data.combination_mode, 'umpire') || strcmpi(user_data.combination_mode, 'cusp3'))
+        TEs = user_data.TEs;
+        if (TEs(2) - TEs(1) == TEs(3) - TEs(2))
+            error('umpire based combination is not possible with these echo times');
+        end
+    end
 
 end
 
@@ -162,6 +170,9 @@ function [ data ] = getDefault(user_data)
     if ~isempty(data.channels)
         data.n_channels = length(data.channels);
     end
+    
+    % calculate smoothingKernelSize in pixel
+    data.smoothingKernelSizeInVoxel = data.smoothingKernelSizeInMM / data.nii_pixdim(2);
     
     data.parallel = min(feature('numCores'), data.parallel);
 
@@ -345,14 +356,13 @@ function [ smoothed_rpo ] = smoothRPO(data, rpo, weight)
 %SMOOTHRPO Smoothes the RPO
     smoothed_rpo = complex(zeros(size(rpo),'single'));
     % assuming same size in x and y dimension
-    sigma_size = data.smoothingKernelSize;
-    sigma_size_pix = sigma_size / data.nii_pixdim(2);
+    sigma_size = data.smoothingKernelSizeInVoxel;
     % toggle smoothing
     if ~data.rpo_weigthedSmoothing
         weight = [];
     end
     for cha = 1:data.n_channels
-        smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size_pix, weight);
+        smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size, weight);
     end
 
 end

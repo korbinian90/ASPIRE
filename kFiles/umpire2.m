@@ -1,11 +1,9 @@
-function [ fieldmap, time, save ] = umpire2(phase_diff2, dt2, phase_diff1, dt1, weight, varargin)
+function [ fieldmap, time, save ] = umpire2(phase_diff2, dt2, phase_diff1, dt1, weight, sigma, varargin)
 %UMPIRE2 Calculates the UMPIRE fieldmap from phase differences.
 % weight can be [] for no weighting
 
 dt_diff = dt2 - dt1;
 %% Getting first omega
-%TODO: better real size sigma
-sigma = 4;
 first_omega = umpire_pd_range(phase_diff2, phase_diff1, -pi);
 
 % toggle smoothing
