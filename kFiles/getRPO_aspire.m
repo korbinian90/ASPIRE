@@ -10,7 +10,7 @@ function [ rpo, save ] = getRPO_aspire(data, compl)
     size_compl = size(compl);
     rpo = complex(zeros([size_compl(1:3) size_compl(5)], 'single'));
     for cha = 1:data.n_channels
-        rpo_temp = double(compl(:,:,:,1,cha)) .* double(conj(hermitian));
+        rpo_temp = double(compl(:,:,:,data.aspire_echoes(1),cha)) .* double(conj(hermitian));
         rpo(:,:,:,cha) = single(rpo_temp ./ abs(rpo_temp));
     end
     

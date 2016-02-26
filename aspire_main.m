@@ -41,9 +41,9 @@ for run=3
             readfile_dirs = {'2','4'};
             write_dir = fullfile(sacher_dir, 'test/');
             data.unwrapping_method = 'none';
-            data.mcpc3di_unwrapping_method = 'cusack';
+            %data.mcpc3di_unwrapping_method = '';
             data.processing_option = 'slice_by_slice';
-            data.combination_mode = 'cusp3';
+            data.combination_mode = 'aspire';
         case 4
             % CSPA 0.5ms Test
             read_dir = cspa_dir;
