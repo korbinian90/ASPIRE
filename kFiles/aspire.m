@@ -5,10 +5,10 @@ function aspire(user_data)
     setupFolder(user_data);
     % get basic header info
     user_data = getHeaderInfo(user_data);
-    % check for impossible options
-    user_data = checkForWrongOptions(user_data);
     % get default values for missing configuration
     data = getDefault(user_data);
+    % check for impossible options
+    data = checkForWrongOptions(data);
     
     %% MAIN CALCULATION
     if strcmpi(data.combination_mode, 'mcpc3di') && strcmpi(data.processing_option, 'slice_by_slice')
@@ -112,51 +112,51 @@ function allSteps(data, i)
 end
 
 
-function user_data = checkForWrongOptions(user_data)
+function data = checkForWrongOptions(data)
 
  % check for enough echoes for UMPIRE
-    if (user_data.n_echoes < 3)
-        if (strcmpi(user_data.combination_mode, 'umpire') || strcmpi(user_data.combination_mode, 'cusp3'))
-            disp(['UMPIRE based combination not possible with ' int2str(user_data.n_echoes) ' echoes']);
-            if (user_data.n_echoes == 2)
+    if (data.n_echoes < 3)
+        if (strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3'))
+            disp(['UMPIRE based combination not possible with ' int2str(data.n_echoes) ' echoes']);
+            if (data.n_echoes == 2)
                 disp('aspire is used instead');
-                user_data.combination_mode = 'aspire';
+                data.combination_mode = 'aspire';
             else
                 exit;
             end
         end
-        if (strcmpi(user_data.unwrapping_method, 'umpire') || strcmpi(user_data.unwrapping_method, 'mod'))
-            disp(['UMPIRE based unwrapping not possible with ' int2str(user_data.n_echoes) ' echoes. No unwrapping performed.']);
-            user_data.unwrapping_method = 'none';
+        if (strcmpi(data.unwrapping_method, 'umpire') || strcmpi(data.unwrapping_method, 'mod'))
+            disp(['UMPIRE based unwrapping not possible with ' int2str(data.n_echoes) ' echoes. No unwrapping performed.']);
+            data.unwrapping_method = 'none';
         end
     end
 
-    % MCPC3D only with all_at_once
-    if (strcmpi(user_data.combination_mode, 'mcpc3d'))
-        if ~isfield(user_data, 'processing_option') || strcmpi(user_data.processing_option, 'slice_by_slice')
-            disp([user_data.combination_mode ' only works with processing_option all_at_once']);
-            user_data.processing_option = 'all_at_once';
+    % MCPC3D works only with all_at_once because of cusack unwrapping
+    if (strcmpi(data.combination_mode, 'mcpc3d'))
+        if ~isfield(data, 'processing_option') || strcmpi(data.processing_option, 'slice_by_slice')
+            disp([data.combination_mode ' only works with processing_option all_at_once']);
+            data.processing_option = 'all_at_once';
         end
     end
     
     % cusack unwrapping needs all_at_once
-    if (strcmpi(user_data.processing_option, 'slice_by_slice') && (~strcmpi(user_data.combination_mode, 'mcpc3di')) && strcmpi(user_data.unwrapping_method, 'cusack'))
+    if (strcmpi(data.processing_option, 'slice_by_slice') && (~strcmpi(data.combination_mode, 'mcpc3di')) && strcmpi(data.unwrapping_method, 'cusack'))
         disp('cusack unwrapping needs all_at_once');
-        user_data.processing_option = 'all_at_once';
+        data.processing_option = 'all_at_once';
     end
     
     % umpire ddTE ~= 0
-    if (strcmpi(user_data.combination_mode, 'umpire') || strcmpi(user_data.combination_mode, 'cusp3'))
-        TEs = user_data.TEs;
+    if (strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3'))
+        TEs = data.TEs;
         if (TEs(2) - TEs(1) == TEs(3) - TEs(2))
             error('umpire based combination is not possible with these echo times');
         end
     end
     
     % warning for aspire if TE2 ~= 2*TE1
-    if (strcmpi(user_data.combination_mode, 'aspire'))
-        TEs = user_data.TEs;
-        echoes = user_data.aspire_echoes;
+    if (strcmpi(data.combination_mode, 'aspire'))
+        TEs = data.TEs;
+        echoes = data.aspire_echoes;
         if (TEs(echoes(2)) ~= 2 * TEs(echoes(1)))
             disp('Warning: TE2 = 2 * TE1 is not fulfilled. There may be combination problems.');
         end

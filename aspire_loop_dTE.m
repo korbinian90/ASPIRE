@@ -10,11 +10,12 @@ aspire_startup
     %id_readfile_dirs_ute = {{'10','12'}, {'6','8'}, {'2','4'}};
     dte_list = [-1200 -3000 3000 880 2500 1990 -2500 3000 3000 -2650];
     
-    combinations = {'aspire', 'cusp3', 'MCPC3Di', 'hip'};
+    combinations = {'aspire', 'cusp3', 'MCPC3Di'};
     %combinations = {'cusp3', 'MCPCC', 'MCPC3Di'};
     %combinations = {'cusp3'};
+    %combinations = {'MCPC3Di', 'hip'};
     
-for id = 1:9
+for id = 2:9
     for co = combinations
    
         data.unwrapping_method = 'none';
@@ -28,7 +29,7 @@ for id = 1:9
             data.processing_option = 'all_at_once';
             data.parallel = 0;
         else
-            data.parallel = 0;
+            data.parallel = 8;
             data.processing_option = 'slice_by_slice';
         end
     
