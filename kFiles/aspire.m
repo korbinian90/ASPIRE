@@ -152,6 +152,15 @@ function user_data = checkForWrongOptions(user_data)
             error('umpire based combination is not possible with these echo times');
         end
     end
+    
+    % warning for aspire if TE2 ~= 2*TE1
+    if (strcmpi(user_data.combination_mode, 'aspire'))
+        TEs = user_data.TEs;
+        echoes = user_data.aspire_echoes;
+        if (TEs(echoes(2)) ~= 2 * TEs(echoes(1)))
+            disp('Warning: TE2 = 2 * TE1 is not fulfilled. There may be combination problems.');
+        end
+    end
 
 end
 

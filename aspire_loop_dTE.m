@@ -10,11 +10,11 @@ aspire_startup
     %id_readfile_dirs_ute = {{'10','12'}, {'6','8'}, {'2','4'}};
     dte_list = [-1200 -3000 3000 880 2500 1990 -2500 3000 3000 -2650];
     
-    %combinations = {'aspire', 'cusp3', 'MCPC3Di', 'hip'};
+    combinations = {'aspire', 'cusp3', 'MCPC3Di', 'hip'};
     %combinations = {'cusp3', 'MCPCC', 'MCPC3Di'};
-    combinations = {'cusp3'};
+    %combinations = {'cusp3'};
     
-for id = 10
+for id = 1:9
     for co = combinations
    
         data.unwrapping_method = 'none';
