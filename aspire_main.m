@@ -143,6 +143,7 @@ for run=3
             data.write_channels = [1 2];
             data.mcpc3di_echoes = [2 3];
 %             data.slices = 50:51;
+
     end
     
     data.read_dir = read_dir;
