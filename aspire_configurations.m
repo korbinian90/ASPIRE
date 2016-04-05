@@ -18,7 +18,9 @@ run(fullfile('configurations', configurationName));
 % 
 data.write_dir = fullfile(write_dir, data.combination_mode);
 data.unwrapping_method = unwrapping_method_after_combination;
-%data.mcpc3di_unwrapping_method = unwrapping_method_for_combination;
+if exists('unwrapping_method_for_combination')
+    data.mcpc3di_unwrapping_method = unwrapping_method_for_combination;
+end
 
 % run ASPIRE
 tic;

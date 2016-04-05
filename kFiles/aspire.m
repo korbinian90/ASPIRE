@@ -170,14 +170,21 @@ function [ data ] = getDefault(user_data)
         
     % load default values
     aspire_defaults;
-    
+
     % apply defaults for missing values
     for user_selections = fieldnames(user_data)'
         data.(user_selections{1}) = user_data.(user_selections{1});
     end
-    
+        
+    % if custom channles are specified
     if ~isempty(data.channels)
+        % replace n_channels by custom value
         data.n_channels = length(data.channels);
+        % adjust indices of write_channels if subset of channels and set write_channels to all channels otherwise
+        [subset, data.write_channels] = ismember(data.write_channels, data.channels);
+        if ~all(subset)
+            data.write_channels = 1:data.n_channels;
+        end
     end
     
     % calculate smoothingKernelSize in pixel
@@ -405,14 +412,17 @@ function concatImagesInSubdirs(data)
             ending = strfind(filename, '_');
             name = filename(1:ending(end)-1);
 
-            concatImages(folder, data.slices, name);
+            % break if error
+            if concatImages(folder, data.slices, name)
+                break;
+            end
         end
     end
 
 end
 
 
-function concatImages(folder, data_slices, image_name)
+function error = concatImages(folder, data_slices, image_name)
 
         sep_dir = fullfile(folder, 'sep');
         filename = fullfile(folder, [image_name '.nii']);
@@ -423,10 +433,11 @@ function concatImages(folder, data_slices, image_name)
         end
 
         unix_command = ['fslmerge -z ' filename ' ' strjoin(filename_list)];
-        [res, ~] = unix(unix_command);
+        [error, ~] = unix(unix_command);
 
-        if res
-           disp(['Error concatenating ' image_name '. (' unix_command ')']);
+        if error
+            disp(['Error concatenating ' image_name '. (' unix_command ')']);
+            disp('Maybe there are files in sep folder from different run?');
         else
             unix(['rm ' strjoin(filename_list)]);
             % only removes directory if it is already empty

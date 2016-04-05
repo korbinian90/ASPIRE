@@ -6,8 +6,8 @@ aspire_startup
     mtjv_dir = fullfile(net_app, '19900620MTJV_201602011545/nifti/');
     sacher_dir = '/sacher/melange/users/keckstein/data/ASPIRE/';
 
-    study_dir = 'comparison';
-    id_list = [1 2]; % cspa mtjv
+    study_dir = 'comparison_slice70';
+    id_list = [2]; % cspa mtjv
     id_name = {'CSPA', 'MTJV'};
     id_read_dir = {cspa_dir, mtjv_dir};
     id_readfile_dirs_aspire = {{'37','39'}, {'67','69'}};
@@ -15,13 +15,15 @@ aspire_startup
     id_readfile_dirs_ute = {{'24','26'}, {'20','22'}};
     
     combinations = {'aspire', 'MCPC3Di', 'MCPC3D'};
-%     combinations = {'MCPC3D'};
+    %data.channels = [6 7]; % channels used for combination
+    combinations = {'aspire'};
+    data.slices = 70;
 
 for id = id_list
 
     for co = combinations
    
-        data.unwrapping_method_after_combination = 'cusack';
+        %data.unwrapping_method_after_combination = 'cusack';
         data.read_dir = id_read_dir{id};
         data.write_dir = fullfile(sacher_dir, study_dir, id_name{id}, co{1});
         data.readfile_dirs_ute = id_readfile_dirs_ute{id};
@@ -34,7 +36,7 @@ for id = id_list
         else
             readfile_dirs = id_readfile_dirs_aspire{id};
             data.parallel = 0;
-            data.processing_option = 'all_at_once';
+            data.processing_option = 'slice_by_slice';
         end
     
  
@@ -43,6 +45,7 @@ for id = id_list
         data.filename_magTextHeader = fullfile(data.read_dir, readfile_dirs{1}, 'text_header.txt');
         data.filename_phaseTextHeader = fullfile(data.read_dir, readfile_dirs{2}, 'text_header.txt');
         data.wrap_estimator_range = [-5 3];
+
         tic;
         aspire(data);
         disp(['Whole calculation takes: ' secs2hms(toc)]);
