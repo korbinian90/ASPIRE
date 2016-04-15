@@ -3,9 +3,9 @@
 %   Korbinian Eckstein (korbinian90@gmail.com) and Simon Robinson (simon.robinson@meduniwien.ac.at). 16.2.2016
 %   version_number = 1.0 : 16.2.2016
 %   version_number = 1.1 : 17.2.2016 : S.R. removed 'like' formulation in calls to 'zeroes' and 'ones' to give compabitility back to MATLAB7 (for these functions, at least)
-%   version_number = 1.2 : 04.4.2016 : K.E. fixed problem with scaling, a lot of refactoring
+%   version_number = 1.3 : 04.4.2016 : K.E. fixed problem with scaling, a lot of refactoring
 %
-%   current_version_number = 1.2
+%   current_version_number = 1.3
 
     
 clear all; clc
@@ -26,6 +26,7 @@ unwrapping_method_for_combination = 'none'; % choices: 'cusack', 'none' % not us
 data.combination_mode = 'aspire'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
 data.save_steps = 1; % write processing steps
 data.write_channels = [1 2]; % processing steps for channels to be written
+data.weightedCombination = 1; % magnitude weighted combination of complex images after phase correction
 
 % data.prelude_mask_threshold = 200;
 % data.rpo_weigthedSmoothing = 1;

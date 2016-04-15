@@ -1,6 +1,6 @@
 clear all;
 aspire_startup
-for run=3
+for run=12
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');
@@ -104,14 +104,13 @@ for run=3
             % ABRC
             read_dir = abrc_dir;
             readfile_dirs = {'20','22'};
-            write_dir = fullfile(sacher_dir, 'ABRC/MCPC3D');
+            write_dir = fullfile(sacher_dir, 'ABRC/MCPC3DNew');
 %             data.parallel = 12;
 %             data.slices = 57;
             data.write_channels = [8 12 13 16 24 28 29 32];
             data.processing_option = 'all_at_once';
             data.combination_mode = 'mcpc3d';
-            data.unwrapping_method_after_combination = 'mod';
-            %TODO error when wrong option
+            data.unwrapping_method_after_combination = 'cusack';
         case 13
             % KREK
             read_dir = krek_dir;

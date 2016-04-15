@@ -6,7 +6,11 @@ aspire_startup
     mtjv_dir = fullfile(net_app, '19900620MTJV_201602011545/nifti/');
     sacher_dir = '/sacher/melange/users/keckstein/data/ASPIRE/';
 
-    study_dir = 'comparison_slice70';
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    study_dir = 'comparison_mcpc3dMaskMiddle';
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     id_list = [2]; % cspa mtjv
     id_name = {'CSPA', 'MTJV'};
     id_read_dir = {cspa_dir, mtjv_dir};
@@ -14,10 +18,11 @@ aspire_startup
     id_readfile_dirs_mcpc3di = {{'41','43'}, {'63','65'}};
     id_readfile_dirs_ute = {{'24','26'}, {'20','22'}};
     
-    combinations = {'aspire', 'MCPC3Di', 'MCPC3D'};
+    combinations = {'aspire', 'mcpc3di', 'mcpc3d'};
     %data.channels = [6 7]; % channels used for combination
-    combinations = {'aspire'};
-    data.slices = 70;
+    combinations = {'mcpc3d'};
+    data.write_channels = 1:32;
+    %data.slices = 65:75;
 
 for id = id_list
 
@@ -35,8 +40,8 @@ for id = id_list
             data.processing_option = 'all_at_once';
         else
             readfile_dirs = id_readfile_dirs_aspire{id};
-            data.parallel = 0;
-            data.processing_option = 'slice_by_slice';
+            data.parallel = 8;
+            data.processing_option = 'all_at_once';
         end
     
  

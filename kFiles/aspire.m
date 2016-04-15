@@ -84,7 +84,8 @@ function allSteps(data, i)
     compl = removeRPO(data.n_echoes, compl, rpo_smooth);
     
     %% combine
-    combined = sum(compl, 5);
+    % TODO: include magnitude weighting
+    combined = combineImages(compl, data.weightedCombination);
 
     % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -109,6 +110,16 @@ function allSteps(data, i)
         saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
     end
        
+end
+
+
+function combined = combineImages(compl, doWeighted)
+    
+    if doWeighted
+        combined = sum(compl .* abs(compl), 5);
+    else
+        combined = sum(compl, 5);
+    end
 end
 
 
@@ -328,7 +339,8 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
     if strcmpi(data.combination_mode, 'composer')
         rpo = getRPO_composer(data, i);
     elseif strcmpi(data.combination_mode, 'MCPC3D')
-        rpo = getRPO_MCPC3D(data, compl);
+        [rpo, save] = getRPO_MCPC3D(data, compl);
+        saveStruct(data, i, 'MCPC3D_getRPO', save); clear save;
     elseif strcmpi(data.combination_mode, 'MCPC3Di')
         [rpo, save] = getRPO_MCPC3D_improved(data, compl);
         saveStruct(data, i, 'MCPC3Di_getRPO', save); clear save;
@@ -499,7 +511,7 @@ function mcpc3diSliceBySlice(data)
         compl = removeRPO(data.n_echoes, compl, rpo_smooth);
 
         %% combine
-        combined = sum(compl, 5);
+        combined = combineImage(compl, data.weightedCombination);
         
         %% unwrap combined phase
         combined_phase(:,:,i,:) = angle(combined);
