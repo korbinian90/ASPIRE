@@ -6,8 +6,8 @@ function [ unwrapped_phase, debug ] = umpireQuick( phase, TEs, weight, varargin 
     end
 
     lower_bound = 3*pi/4;
-    time = TEs(1) + TEs(2) - TEs(3);
-    first_omega = phase(:,:,:,1) + phase(:,:,:,2) - phase(:,:,:,3);
+    time = TEs(1) - 2*TEs(2) + TEs(3);
+    first_omega = phase(:,:,:,1) - 2*phase(:,:,:,2) + phase(:,:,:,3);
     first_omega = mod(first_omega - lower_bound, 2*pi) + lower_bound;
     
     unwrapped_phase = zeros(size(phase));

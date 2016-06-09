@@ -71,6 +71,8 @@ function allSteps(data, i)
     %% read in the data and get complex + weight (sum of mag)
     [compl, weight] = importImages(data, slice);
 
+    saveNii(data, i, 'steps', angle(compl), 'orig_phase', data.write_channels); % <- temp for paper, debug for 4 argument use!
+        
     % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
        time = toc;
@@ -97,14 +99,17 @@ function allSteps(data, i)
     [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, weight);
     
     %% ratio
-    ratio = calcRatio(data.n_echoes, combined, compl);
+    ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
     
     %% save to disk
     saveNii(data, i, 'results', combined_phase, 'combined_phase');
     saveNii(data, i, 'results', unwrapped, 'unwrapped');
+    saveNii(data, i, 'magExperimental', abs(combined), 'combined_mag');
+    saveNii(data, i, 'magExperimental', sqrt(abs(combined)), 'combined_mag_root');
     if data.save_steps
         saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
         saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
+        saveNii(data, i, 'steps', abs(compl), 'mag', data.write_channels);
         saveNii(data, i, 'steps', ratio, 'ratio');
         saveNii(data, i, 'steps', weight, 'weight');
         saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
@@ -354,6 +359,8 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
     elseif strcmp(data.combination_mode, 'cusp2') || strcmpi(data.combination_mode, 'aspire')
         [rpo, save] = getRPO_aspire(data, compl);
         saveStruct(data, i, 'aspire_getRPO', save); clear save;
+    else
+        error([data.combination_mode ' is no valid combination mode']);
     end
 
     %% smooth RPO
@@ -396,11 +403,15 @@ function [ smoothed_rpo ] = smoothRPO(data, rpo, weight)
 end
 
 
-function [ ratio ] = calcRatio(nEchoes, combined, compl)
+function [ ratio ] = calcRatio(nEchoes, combined, compl, doWeighted)
     ratio = zeros(size(combined));
     
     for eco = 1:nEchoes;
-        magSum = sum(abs(compl(:,:,:,eco,:)), 5);
+        if doWeighted
+            magSum = sum(double(abs(compl(:,:,:,eco,:))).^2, 5);
+        else
+            magSum = sum(abs(compl(:,:,:,eco,:)), 5);
+        end
         ratio(:,:,:,eco) = abs(combined(:,:,:,eco)) ./ magSum(:,:,:);
     end
 end
@@ -520,7 +531,7 @@ function mcpc3diSliceBySlice(data)
         saveNii(data, i, 'results', combined_phase(:,:,i,:), 'combined_phase');
         if data.save_steps
             % ratio
-            ratio = calcRatio(data.n_echoes, combined, compl);
+            ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
             saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
             saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
             saveNii(data, i, 'steps', ratio, 'ratio');

@@ -20,7 +20,7 @@ function [ unwrapped_phase, debug ] = umpireModQuick( phase, TEs, weight, vararg
     
     unwrapped_phase = zeros(size(phase));
     for echo = 1:3
-       [unwrapped_phase(:,:,:,echo), debug_unwrap{echo}] = umpire_unwrap(phase(:,:,:,echo), TEs(echo), fm, time);
+       [unwrapped_phase(:,:,:,echo), debug_unwrap{echo}] = umpireUnwrap(phase(:,:,:,echo), TEs(echo), fm, time);
     end
     
     debug.fm = fm;

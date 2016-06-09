@@ -1,6 +1,6 @@
 clear all;
 aspire_startup
-for run=12
+for run=11
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');

@@ -2,8 +2,8 @@ function [ scaled_fm, save ] = getFM_umpire( TEs, compl, weight, sigma )
 %GETFM_U Gets expected phase evolution to first echo
 %   Detailed explanation goes here
     
-    fm1 = calculateHip([2 1], compl);
-    fm2 = calculateHip([3 2], compl);
+    fm1 = calculateHip([1 2], compl);
+    fm2 = calculateHip([2 3], compl);
     dt1 = TEs(2) - TEs(1);
     dt2 = TEs(3) - TEs(2);
     

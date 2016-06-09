@@ -38,17 +38,17 @@ function [ rpo, save ] = getRPO_MCPC3D( data, compl )
         mask_y = round(y * 0.3):round(y * 0.7);
         mask_z = round(z * 0.4):round(z * 0.6);
         mask(mask_x,mask_y,mask_z) = 1;
-        save = toSave(save, mask, ['mask_c' int2str(cha)]);
+        %save = toSave(save, mask, ['mask_c' int2str(cha)]);
         % idea: high magnitude in middle of brain
         
-        maskMax = mask_weight > 0.1 * max(mask_weight(:)); % mask good enough?
-        save = toSave(save, maskMax, ['maskMax_c' int2str(cha)]);
-        
-        maskMedian = mask_weight > median(mask_weight(:)); % mask alternative
-        save = toSave(save, maskMedian, ['maskMedian_c' int2str(cha)]);
-        
+%         maskMax = mask_weight > 0.1 * max(mask_weight(:)); % mask good enough?
+%         save = toSave(save, maskMax, ['maskMax_c' int2str(cha)]);
+%         
+%         maskMedian = mask_weight > median(mask_weight(:)); % mask alternative
+%         save = toSave(save, maskMedian, ['maskMedian_c' int2str(cha)]);
+%         
         n2pi = round(median(diff(mask == 1)));
-        save = toSave(save, n2pi, ['n2pi_c' int2str(cha)]);
+%         save = toSave(save, n2pi, ['n2pi_c' int2str(cha)]);
         % correction for jumps
         unwrapped = unwrapped - n2pi;
         %% Phase Offset calculation

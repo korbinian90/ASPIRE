@@ -8,20 +8,20 @@ aspire_startup
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    study_dir = 'comparison_mcpc3dMaskMiddle';
+    study_dir = 'unwrapping';
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    id_list = [2]; % cspa mtjv
+    id_list = [1]; % cspa mtjv
     id_name = {'CSPA', 'MTJV'};
     id_read_dir = {cspa_dir, mtjv_dir};
     id_readfile_dirs_aspire = {{'37','39'}, {'67','69'}};
     id_readfile_dirs_mcpc3di = {{'41','43'}, {'63','65'}};
     id_readfile_dirs_ute = {{'24','26'}, {'20','22'}};
     
-    combinations = {'aspire', 'mcpc3di', 'mcpc3d'};
+    combinations = {'aspire', 'mcpc3di', 'umpire', 'mcpc3d'};
     %data.channels = [6 7]; % channels used for combination
-    combinations = {'mcpc3d'};
-    data.write_channels = 1:32;
+    combinations = {'aspire'};
+    %data.write_channels = 1:32;
     %data.slices = 65:75;
 
 for id = id_list
@@ -40,8 +40,9 @@ for id = id_list
             data.processing_option = 'all_at_once';
         else
             readfile_dirs = id_readfile_dirs_aspire{id};
-            data.parallel = 8;
+            data.parallel = 12;
             data.processing_option = 'all_at_once';
+            data.unwrapping_method = 'umpire';
         end
     
  
@@ -49,7 +50,6 @@ for id = id_list
         data.filename_phase = fullfile(data.read_dir, readfile_dirs{2}, 'reform', 'Image.nii');
         data.filename_magTextHeader = fullfile(data.read_dir, readfile_dirs{1}, 'text_header.txt');
         data.filename_phaseTextHeader = fullfile(data.read_dir, readfile_dirs{2}, 'text_header.txt');
-        data.wrap_estimator_range = [-5 3];
 
         tic;
         aspire(data);

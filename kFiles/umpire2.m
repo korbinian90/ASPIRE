@@ -14,10 +14,9 @@ else
 end
 
 %% Unwrapping phase differences
-% the two unwrapped fieldmaps added -> phase evolution of dt1 + dt2
-% -> longer dt has more weighting
 fieldmap2 = umpireUnwrap(phase_diff2, dt2, smoothed_omega, dt_diff);
 fieldmap1 = umpireUnwrap(phase_diff1, dt1, smoothed_omega, dt_diff);
+% TODO: better weighting for the fieldmap addition (mag weighted?)
 fieldmap = fieldmap1 + fieldmap2;
 time = dt1 + dt2;
 
