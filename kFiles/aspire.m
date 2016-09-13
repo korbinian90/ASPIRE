@@ -1,13 +1,9 @@
 function aspire(user_data)
 
     %% SETUP
-    % stops with error, if no permission
-    setupFolder(user_data);
-    % get basic header info
+    setupFolder(user_data); % stops with error, if no permission
     user_data = getHeaderInfo(user_data);
-    % get default values for missing configuration
     data = getDefault(user_data);
-    % check for impossible options
     data = checkForWrongOptions(data);
     
     %% MAIN CALCULATION
@@ -19,7 +15,6 @@ function aspire(user_data)
     
     %% POSTPROCESSING
     if strcmpi(data.processing_option, 'slice_by_slice')
-        disp('concatenating slices with fslmerge');
         concatImagesInSubdirs(data);
     end
     
@@ -58,7 +53,6 @@ end
 
 
 function allSteps(data, i)
-% this function does all of the work (calling other functions)        
 
     % slice is the anatomical slice (i is the loop counter)
     slice = data.slices(i);
@@ -79,14 +73,9 @@ function allSteps(data, i)
        disp('Finished loading images, calculating...');
     end
     
-    %% get RPO
+    %% Main steps
     rpo_smooth = getRPOSelector(data, compl, weight, i);
-
-    %% remove RPO
     compl = removeRPO(data.n_echoes, compl, rpo_smooth);
-    
-    %% combine
-    % TODO: include magnitude weighting
     combined = combineImages(compl, data.weightedCombination);
 
     % TIMING END COMBINATION
@@ -235,16 +224,18 @@ function [ compl, weight ] = importImages(data, real_slice)
         mag_nii = load_nii_slice(data.filename_mag, real_slice, [], data.channels);
     end
 
-    %% precomputation steps
-    mag = single(mag_nii.img);
+    %% precomputation steps (save memory)
+    mag = single(mag_nii.img); clear mag_nii
     mag(mag <= 0) = 0;
     mag = single(rescale(mag, 0.01, 4095));
-    phase = single(rescale(phase_nii.img, -pi, pi));
-    compl = mag .* exp(single(1i * phase));
+    phase = single(rescale(phase_nii.img, -pi, pi)); clear phase_nii
+    compl = single(1i * phase); clear phase
+    compl = exp(compl);
+    compl = mag .* compl;
     
     % use the sum of magnitudes as weight (all channels and all echoes
     % summed up)
-    weight = sum(mag(:,:,:,:), 4);
+    weight = sum(sum(mag, 5), 4);
     
 end
 
@@ -344,7 +335,7 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
     if strcmpi(data.combination_mode, 'composer')
         rpo = getRPO_composer(data, i);
     elseif strcmpi(data.combination_mode, 'MCPC3D')
-        [rpo, save] = getRPO_MCPC3D(data, compl);
+        [rpo, save] = getRPO_MCPC3D_saving(data, compl);
         saveStruct(data, i, 'MCPC3D_getRPO', save); clear save;
     elseif strcmpi(data.combination_mode, 'MCPC3Di')
         [rpo, save] = getRPO_MCPC3D_improved(data, compl);
@@ -419,7 +410,7 @@ end
 
 function concatImagesInSubdirs(data)
 %searches for sep dirs in subdirs and concatenates images
-
+    disp('concatenating slices with fslmerge');
     subdirs = dir(data.write_dir);
     
     for i = 3:length(subdirs)
@@ -522,7 +513,7 @@ function mcpc3diSliceBySlice(data)
         compl = removeRPO(data.n_echoes, compl, rpo_smooth);
 
         %% combine
-        combined = combineImage(compl, data.weightedCombination);
+        combined = combineImages(compl, data.weightedCombination);
         
         %% unwrap combined phase
         combined_phase(:,:,i,:) = angle(combined);
