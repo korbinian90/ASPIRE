@@ -109,8 +109,13 @@ end
 
 function combined = combineImages(compl, doWeighted)
     
+    dim = size(compl);
+    combined = zeros(dim(1:4), 'single');
     if doWeighted
-        combined = sum(compl .* abs(compl), 5);
+        for iCha = 1:dim(5)
+            complCha = compl(:,:,:,:,iCha);
+            combined = combined + (complCha .* abs(complCha));
+        end
     else
         combined = sum(compl, 5);
     end

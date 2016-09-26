@@ -28,13 +28,14 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
     
     dim = size(compl);
     nChannels = size(compl,5);
-    rpo = zeros([dim(1:3) nChannels]);
+    rpo = zeros([dim(1:3) nChannels], 'single');
     for cha = 1:size(rpo,4)
         rpo(:,:,:,cha) = angle(compl(:,:,:,1,cha)) - unwrapped;
     end
     
     % get complex rpo with mag=1
-    rpo = exp(1i * squeeze(rpo));
+    rpo = single(squeeze(1i * rpo));
+    rpo = exp(rpo);
     
     save = toSave([], hermitian, 'hermitian');
     save = toSave(save, unwrapped, 'unwrapped');

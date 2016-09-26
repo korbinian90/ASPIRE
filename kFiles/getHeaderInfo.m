@@ -2,28 +2,30 @@ function [ data ] = getHeaderInfo( data )
 %GETHEADERINFO gets important information from nifti header
 %   Detailed explanation goes here
 
-    % used variables of data
-    filename_mag = data.filename_mag;
-    filename_phase = data.filename_phase;
-    filename_magTextHeader = data.filename_magTextHeader;
-    filename_phaseTextHeader = data.filename_phaseTextHeader;
+    if ~isfield(data, 'noHeader')
+        % used variables of data
+        filename_mag = data.filename_mag;
+        filename_phase = data.filename_phase;
+        filename_magTextHeader = data.filename_magTextHeader;
+        filename_phaseTextHeader = data.filename_phaseTextHeader;
 
-    magData = fromHeader(filename_mag, filename_magTextHeader);
-    phaseData = fromHeader(filename_phase, filename_phaseTextHeader);
-    
-    if ~isequal(magData, phaseData)
-        error('Magnitude and phase have different Header info!');
+        magData = fromHeader(filename_mag, filename_magTextHeader);
+        phaseData = fromHeader(filename_phase, filename_phaseTextHeader);
+
+        if ~isequal(magData, phaseData)
+            error('Magnitude and phase have different Header info!');
+        end
+
+        fprintf('There are %i echoes and %i channels\n', magData.n_echoes, magData.n_channels);
+
+        % Output variables
+        data.n_echoes = magData.n_echoes;
+        data.n_channels = magData.n_channels;
+        data.nii_dim = magData.nii_dim;
+        data.dim = magData.dim;
+        data.nii_pixdim = magData.nii_pixdim;
+        data.TEs = magData.TEs;
     end
-    
-    fprintf('There are %i echoes and %i channels\n', magData.n_echoes, magData.n_channels);
-    
-    % Output variables
-    data.n_echoes = magData.n_echoes;
-    data.n_channels = magData.n_channels;
-    data.nii_dim = magData.nii_dim;
-    data.dim = magData.dim;
-    data.nii_pixdim = magData.nii_pixdim;
-    data.TEs = magData.TEs;
 end
 
 
