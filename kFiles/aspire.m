@@ -112,10 +112,7 @@ function combined = combineImages(compl, doWeighted)
     dim = size(compl);
     combined = zeros(dim(1:4), 'single');
     if doWeighted
-        for iCha = 1:dim(5)
-            complCha = compl(:,:,:,:,iCha);
-            combined = combined + (complCha .* abs(complCha));
-        end
+        weightedCombination(compl, abs(compl));
     else
         combined = sum(compl, 5);
     end
@@ -211,7 +208,7 @@ function setupFolder(data)
     %   Make directory for results
     s = mkdir(data.write_dir);
     if s == 0
-        error('No permission to make directory %s/m', data.write_dir);
+        error('No permission to make directory %s\n', data.write_dir);
     end
     
 end
@@ -402,13 +399,13 @@ end
 function [ ratio ] = calcRatio(nEchoes, combined, compl, doWeighted)
     ratio = zeros(size(combined));
     
-    for eco = 1:nEchoes;
-        if doWeighted
-            magSum = sum(double(abs(compl(:,:,:,eco,:))).^2, 5);
-        else
+    if doWeighted
+        ratio = calculateRatioWeighted(abs(combined), abs(compl), abs(compl));
+    else
+        for eco = 1:nEchoes;
             magSum = sum(abs(compl(:,:,:,eco,:)), 5);
+            ratio(:,:,:,eco) = abs(combined(:,:,:,eco)) ./ magSum(:,:,:);
         end
-        ratio(:,:,:,eco) = abs(combined(:,:,:,eco)) ./ magSum(:,:,:);
     end
 end
 
