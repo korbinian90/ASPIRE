@@ -1,12 +1,32 @@
 function phase = preludeUnwrap( data, phase, weight)
-%PRELUDEUNWRAP Unwraps the phase using PRELUDE
-% NOT WORKING!!
-%   TODO: for multi echo multi slice
+%PRELUDEUNWRAP Unwraps the phase using PRELUDE 2D
 
-%     if ~isfield(data, 'prelude_mask_threshold')
-%         error('data.prelude_mask_threshold is not defined, but required for prelude. Set it according to the used magnitude.');
-%     end
+    %% get data dimension and other setup stuff
+   
+    %% loop over channels
+   
+        % prelude 2D unwrapping
+        
+        % slice correction
+        
+        % echo correction
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     disp('Prelude unwrapping...');
     preludeStartTime = toc;
     
