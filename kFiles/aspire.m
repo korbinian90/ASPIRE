@@ -92,7 +92,9 @@ function allSteps(data, i)
     
     %% save to disk
     saveNii(data, i, 'results', combined_phase, 'combined_phase');
-    saveNii(data, i, 'results', unwrapped, 'unwrapped');
+    if isempty(strcmp(data.unwrapping_method, 'none'))
+        saveNii(data, i, 'results', unwrapped, 'unwrapped');
+    end
     saveNii(data, i, 'magExperimental', abs(combined), 'combined_mag');
     saveNii(data, i, 'magExperimental', sqrt(abs(combined)), 'combined_mag_root');
     if data.save_steps
@@ -109,10 +111,8 @@ end
 
 function combined = combineImages(compl, doWeighted)
     
-    dim = size(compl);
-    combined = zeros(dim(1:4), 'single');
     if doWeighted
-        weightedCombination(compl, abs(compl));
+        combined = weightedCombination(compl, abs(compl));
     else
         combined = sum(compl, 5);
     end

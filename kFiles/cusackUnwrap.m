@@ -19,7 +19,7 @@ function [unwrapped] = cusackUnwrap(phase, weight)
         elseif size(weight,4) == 1
             loop_weight = double(weight(:,:,:,1,cha));
         else
-            loop_weight = double(weight(:,:,:,eco_cha));
+            loop_weight = double(weight(:,:,:,cha_eco));
         end
        
         unwrapped(:,:,:,cha_eco) = single(robustunwrap(seed_voxel, double(phase(:,:,:,cha_eco)), loop_weight));
