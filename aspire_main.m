@@ -1,6 +1,6 @@
 clear all;
 aspire_startup
-for run=11
+for run=1
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');
@@ -14,15 +14,16 @@ for run=11
     switch run
         case 1
             % local test
-            read_dir = fullfile(local_dir, 'CSPA/nifti/');
+            read_dir = cspa_dir;%fullfile(local_dir, 'CSPA/nifti/');
             readfile_dirs = {'2','4'};
 %             data.readfile_dirs_ute = {'6','8'};
             data.processing_option = 'all_at_once'; % choices: 'slice_by_slice', 'all_at_once'
-            data.unwrapping_method_after_combination = 'mod'; % choices: 'umpire', 'cusack', 'mod', 'est'
+            data.unwrapping_method_after_combination = 'none'; % choices: 'umpire', 'cusack', 'mod', 'est'
             data.combination_mode = 'MCPC3D'; % choices: 'aspire', 'cusp3', 'composer', 'MCPCC', 'MCPC3D', 'MCPC3Di', 'add'
 %             data.parallel = 0; % specify number of workers for parallel computation (only in slice_by_slice mode) 
 %             data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
             write_dir = fullfile(local_dir, 'mcpc3d/');
+            data.fn_mask = fullfile('/sacher/melange/users/keckstein/data/ASPIRE/db0_hist/bet/local_test_aspire/mask_mask.nii');
 
         case 2
             % composer test
