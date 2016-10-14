@@ -1,5 +1,5 @@
 function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
-%PRELUDEUNWRAP Unwraps the phase using PRELUDE 2D
+%PRELUDEUNWRAP Unwraps the phase using PRELUDE 2D with slice jump correction
 % dimension = [x, y, z, echo, channel]
     if ~isfield(data, 'fn_mask')
         error('data.fn_mask has to be specified for preludeUnwrapping with slice jump correction');
@@ -32,11 +32,12 @@ function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
         fn_sensitivity = fullfile(prelude_dir, 'weightTemp.nii');
         fn_phase = fullfile(prelude_dir, 'phaseTemp.nii');
 
-        % prelude 2D unwrapping
-        prelude_command = sprintf('prelude -a %s -p %s -o %s %s -s',  fn_sensitivity, fn_phase, fn_unwrapped, additionalArgument);
-
         save_nii(make_nii(phase), fn_phase);
         save_nii(make_nii(sensitivity), fn_sensitivity);
+        
+        % prelude 2D unwrapping
+        disp('Prelude unwrapping..');
+        prelude_command = sprintf('prelude -a %s -p %s -o %s %s -s',  fn_sensitivity, fn_phase, fn_unwrapped, additionalArgument);
 
         res = unix(prelude_command);
         if res ~= 0
@@ -49,7 +50,11 @@ function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
     fn_slice_jump_corrected = getFilename(prelude_dir, 'sliceJumpCorrected', channel);
     if ~exist(fn_slice_jump_corrected, 'file')
         %% slice jump correction
+        disp('Slice jump correction');
         mask_nii = load_nii(data.fn_mask);
+        if size(mask_nii.img, 3) ~= nSlices
+            error('mask has wrong dimension!')
+        end
 
         unwrapped = zeros(size(phase), 'single');
         fn_unwrapped = getFilename(prelude_dir, 'unwrapped', channel);

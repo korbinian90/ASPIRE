@@ -7,8 +7,8 @@ function aspire(user_data)
     data = checkForWrongOptions(data);
     
     %% MAIN CALCULATION
-    if strcmpi(data.combination_mode, 'mcpc3di') && strcmpi(data.processing_option, 'slice_by_slice')
-        mcpc3diSliceBySlice(data);
+    if strcmpi(data.combination_mode, 'mcpc3ds') && strcmpi(data.processing_option, 'slice_by_slice')
+        mcpc3dsSliceBySlice(data);
     else
         allPipelines(data);
     end
@@ -92,11 +92,10 @@ function allSteps(data, i)
     
     %% save to disk
     saveNii(data, i, 'results', combined_phase, 'combined_phase');
+    saveNii(data, i, 'results', abs(combined), 'combined_mag');
     if isempty(strcmp(data.unwrapping_method, 'none'))
         saveNii(data, i, 'results', unwrapped, 'unwrapped');
     end
-    saveNii(data, i, 'magExperimental', abs(combined), 'combined_mag');
-    saveNii(data, i, 'magExperimental', sqrt(abs(combined)), 'combined_mag_root');
     if data.save_steps
         saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
         saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
@@ -116,59 +115,6 @@ function combined = combineImages(compl, doWeighted)
     else
         combined = sum(compl, 5);
     end
-end
-
-
-function data = checkForWrongOptions(data)
-
- % check for enough echoes for UMPIRE
-    if (data.n_echoes < 3)
-        if (strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3'))
-            disp(['UMPIRE based combination not possible with ' int2str(data.n_echoes) ' echoes']);
-            if (data.n_echoes == 2)
-                disp('aspire is used instead');
-                data.combination_mode = 'aspire';
-            else
-                exit;
-            end
-        end
-        if (strcmpi(data.unwrapping_method, 'umpire') || strcmpi(data.unwrapping_method, 'mod'))
-            disp(['UMPIRE based unwrapping not possible with ' int2str(data.n_echoes) ' echoes. No unwrapping performed.']);
-            data.unwrapping_method = 'none';
-        end
-    end
-
-    % MCPC3D works only with all_at_once because of cusack unwrapping
-    if (strcmpi(data.combination_mode, 'mcpc3d'))
-        if ~isfield(data, 'processing_option') || strcmpi(data.processing_option, 'slice_by_slice')
-            disp([data.combination_mode ' only works with processing_option all_at_once']);
-            data.processing_option = 'all_at_once';
-        end
-    end
-    
-    % cusack unwrapping needs all_at_once
-    if (strcmpi(data.processing_option, 'slice_by_slice') && (~strcmpi(data.combination_mode, 'mcpc3di')) && strcmpi(data.unwrapping_method, 'cusack'))
-        disp('cusack unwrapping needs all_at_once');
-        data.processing_option = 'all_at_once';
-    end
-    
-    % umpire ddTE ~= 0
-    if (strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3'))
-        TEs = data.TEs;
-        if (TEs(2) - TEs(1) == TEs(3) - TEs(2))
-            error('umpire based combination is not possible with these echo times');
-        end
-    end
-    
-    % warning for aspire if TE2 ~= 2*TE1
-    if (strcmpi(data.combination_mode, 'aspire'))
-        TEs = data.TEs;
-        echoes = data.aspire_echoes;
-        if (TEs(echoes(2)) ~= 2 * TEs(echoes(1)))
-            disp('Warning: TE2 = 2 * TE1 is not fulfilled. There may be combination problems.');
-        end
-    end
-
 end
 
 
@@ -228,8 +174,9 @@ function [ compl, weight ] = importImages(data, real_slice)
 
     %% precomputation steps (save memory)
     mag = single(mag_nii.img); clear mag_nii
-    mag(mag <= 0) = 0;
-    mag = single(rescale(mag, 0.01, 4095));
+    max_val = max(mag(:));
+    min_val = max_val / 10000;
+    mag = single(rescale(mag, min_val, max_val));
     phase = single(rescale(phase_nii.img, -pi, pi)); clear phase_nii
     compl = single(1i * phase); clear phase
     compl = exp(compl);
@@ -262,9 +209,9 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
     elseif strcmpi(data.combination_mode, 'MCPC3D')
         [rpo, save] = getRPO_MCPC3D_saving(data, compl);
         saveStruct(data, i, 'MCPC3D_getRPO', save); clear save;
-    elseif strcmpi(data.combination_mode, 'MCPC3Di')
-        [rpo, save] = getRPO_MCPC3D_improved(data, compl);
-        saveStruct(data, i, 'MCPC3Di_getRPO', save); clear save;
+    elseif strcmpi(data.combination_mode, 'MCPC3DS')
+        [rpo, save] = getRPO_MCPC3Ds(data, compl);
+        saveStruct(data, i, 'MCPC3Ds_getRPO', save); clear save;
     elseif strcmpi(data.combination_mode, 'MCPCC')
         rpo = getRPO_MCPCC(compl);
     elseif strcmpi(data.combination_mode, 'add')
@@ -312,7 +259,7 @@ function [ smoothed_rpo ] = smoothRPO(data, rpo, weight)
     if ~data.rpo_weigthedSmoothing
         weight = [];
     end
-    for cha = 1:data.n_channels
+    parfor cha = 1:data.n_channels
         smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size, weight);
     end
 
@@ -389,8 +336,8 @@ function error = concatImages(folder, data_slices, image_name)
 end
 
 
-%% MCPC3Di slice by slice option
-function mcpc3diSliceBySlice(data)
+%% MCPC3Ds slice by slice option
+function mcpc3dsSliceBySlice(data)
 
     slice_loop = length(data.slices);
     slices = data.slices;
@@ -410,12 +357,12 @@ function mcpc3diSliceBySlice(data)
         % read in the data and get complex + weight (sum of mag)
         compl = importImages(data, slice);
         
-        hip(:,:,i) = calculateHip(data.mcpc3di_echoes, compl);
+        hip(:,:,i) = calculateHip(data.mcpc3d_echoes, compl);
     end
     clear compl;
     
     unwrappingData = data;
-    unwrappingData.unwrapping_method = data.mcpc3di_unwrapping_method;
+    unwrappingData.unwrapping_method = data.mcpc3ds_unwrapping_method;
     unwrappedHip = unwrappingSelector(unwrappingData, angle(hip), abs(hip)); clear hip;
 
     combined_phase = zeros([data.dim data.n_echoes], 'single');
@@ -429,7 +376,7 @@ function mcpc3diSliceBySlice(data)
         weightVolume(:,:,i) = weight;
         
         %% get RPO
-        rpo = getRPO_MCPC3D_improved_sliceBySlice(data, compl, unwrappedHip(:,:,i));
+        rpo = getRPO_MCPC3Ds_sliceBySlice(data, compl, unwrappedHip(:,:,i));
         
         %% smooth RPO
         rpo_smooth = smoothRPO(data, rpo);

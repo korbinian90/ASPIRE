@@ -2,8 +2,8 @@ function [ rpo, save ] = getRPO_MCPC3D( data, compl )
 %GETRPO_MCPC3D calculates the RPO of multi-echo phase using MCPC-3D-I
 
     TEs = data.TEs;
-    if isfield(data,'mcpc3di_echoes')
-        echo = data.mcpc3di_echoes;
+    if isfield(data,'mcpc3d_echoes')
+        echo = data.mcpc3d_echoes;
     else
         echo = [1 2];
     end

@@ -2,8 +2,8 @@
 
 data.rpo_weigthedSmoothing = 0;
 data.aspire_echoes = [1 2];
-data.mcpc3di_echoes = [1 2];
-data.mcpc3di_unwrapping_method = 'cusack';
+data.mcpc3d_echoes = [1 2];
+data.mcpc3ds_unwrapping_method = 'cusack';
 data.slices = 1:user_data.dim(3);
 data.combination_mode = 'aspire';
 data.processing_option = 'slice_by_slice';

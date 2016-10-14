@@ -3,8 +3,8 @@ function [ rpo, save ] = getRPO_MCPC3D_saving( data, compl )
     save = [];
 
     TEs = data.TEs;
-    if isfield(data,'mcpc3di_echoes')
-        echo = data.mcpc3di_echoes;
+    if isfield(data,'mcpc3d_echoes')
+        echo = data.mcpc3d_echoes;
     else
         echo = [1 2];
     end
@@ -37,8 +37,12 @@ function [ rpo, save ] = getRPO_MCPC3D_saving( data, compl )
         weight = abs(compl(:,:,:,[echo(1) echo(2)],cha));
         fn_unwrapped = fullfile(sep_dir, ['unwrapped_c' int2str(cha) '.nii']);
         if ~exist(fn_unwrapped, 'file')
-            disp(['Unwrapping channel ' int2str(cha)]);
-            unwrapped = cusackUnwrap(angle(compl(:,:,:,[echo(1) echo(2)],cha)), weight);
+            disp(['Unwrapping channel ' int2str(cha)]);        
+            if isfield(data, 'mcpc3d_unwrapping') && strcmp(data.mcpc3d_unwrapping, 'cusack')
+                unwrapped = cusackUnwrap(angle(compl(:,:,:,[echo(1) echo(2)],cha)), weight);
+            else
+                unwrapped = preludeUnwrap(data, angle(compl(:,:,:,[echo(1) echo(2)],cha)), weight, cha);
+            end
             save_nii(make_nii(unwrapped), fn_unwrapped);
         else
             disp(['Unwrapped channel ' int2str(cha) ' found!']);
@@ -46,7 +50,7 @@ function [ rpo, save ] = getRPO_MCPC3D_saving( data, compl )
             unwrapped = unwrapped_nii.img;
         end
         
-        unwrapped = echoJumpCorrection(unwrapped, unwrappedHip, weight);
+        unwrapped = echoJumpCorrection(unwrapped, unwrappedHip);
         
         %% Phase Offset calculation
         % formula 5 of MCPC3D paper

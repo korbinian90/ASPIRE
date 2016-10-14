@@ -3,7 +3,7 @@ function [ rpo ] = getRPO_MCPC3D_improved_sliceBySlice( data, compl, unwrappedHi
 %   Detailed explanation goes here
 
     TEs = data.TEs;
-    echo = data.mcpc3di_echoes;
+    echo = data.mcpc3d_echoes;
     
     % SCALE
     scale = TEs(1) / (TEs(echo(2)) - TEs(echo(1)));

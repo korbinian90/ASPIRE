@@ -3,17 +3,17 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
 %   Uses echoes 2 and 3
     
     TEs = data.TEs;
-    if isfield(data,'mcpc3di_echoes')
-        echo = data.mcpc3di_echoes;
+    if isfield(data,'mcpc3d_echoes')
+        echo = data.mcpc3d_echoes;
     else
         echo = [1 2];
     end
     
-    hermitian = calculateHip(data.mcpc3di_echoes, compl);
+    hermitian = calculateHip(data.mcpc3d_echoes, compl);
     
     % UNWRAP HIP
     unwrappingData = data;
-    unwrappingData.unwrapping_method = data.mcpc3di_unwrapping_method;
+    unwrappingData.unwrapping_method = data.mcpc3ds_unwrapping_method;
     unwrapped = unwrappingSelector(unwrappingData, angle(hermitian), abs(hermitian));
     %unwrapped = cusackUnwrap(angle(hermitian), abs(hermitian));
     % unwrapped = angle(hermitian); <- no unwrapping

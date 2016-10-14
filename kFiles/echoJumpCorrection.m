@@ -13,7 +13,7 @@ function [ unwrapped ] = echoJumpCorrection( unwrapped, unwrappedHip )
     
     n2pi = round(median(diff(mask == 1)));
     
-    unwrapped = unwrapped - n2pi;
+    unwrapped(:,:,:,2) = unwrapped(:,:,:,2) - n2pi;
     
 end
 

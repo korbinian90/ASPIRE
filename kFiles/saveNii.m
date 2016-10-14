@@ -1,4 +1,3 @@
-
 function saveNii(data, i, subdir, image, name, channels)
 %SAVENII Saves the image file to the specified folder
 % can save slice or whole image, when data.processing_option=='all_at_once'
