@@ -1,11 +1,12 @@
-clear all;
+clear;
 aspire_startup
-for run=1
+for run=17
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');
     abrc_dir = fullfile(net_app, '19870415ABRC_201506151016/nifti/');
     krek_dir = fullfile(net_app, '19900813KREK_201506161100/nifti/');
+    ktdo_dir = fullfile(net_app, '19920502KTDO_201610201745/nifti/');
     cspaComp_dir = fullfile(net_app, '19860116CSPA_201601281600/nifti/');
     sacher_dir = '/sacher/melange/users/keckstein/data/ASPIRE/';
     local_dir = '/data/korbi/data/CUSP/matlab_data/';
@@ -143,6 +144,35 @@ for run=1
             data.write_channels = [1 2];
             data.mcpc3di_echoes = [2 3];
 %             data.slices = 50:51;
+        case 15
+            data.parallel = 0;
+            read_dir = ktdo_dir;
+            readfile_dirs = {'31', '33'};
+            data.processing_option = 'slice_by_slice';
+            data.unwrapping_method_after_combination = 'none';
+            data.combination_mode = 'aspire';
+            write_dir = '/home/keckstein/data/abstract/aspire';
+            data.write_channels = 1:4;
+        case 16
+            data.parallel = 0;
+            read_dir = ktdo_dir;
+            readfile_dirs = {'31', '33'};
+            data.processing_option = 'all_at_once';
+            data.unwrapping_method_after_combination = 'none';
+            data.combination_mode = 'mcpc3d';
+            write_dir = '/net/mri.meduniwien.ac.at/projects/radiology/swi/data/simon/phase_comb-comparison_ismrm_2017/results/s1/scan_31_33/mcpc-3d-i/using_echoes_1_3/';
+            data.write_channels = 1:4;
+            data.mcpc3d_echoes = [1 3];
+        case 17
+            data.parallel = 0;
+            read_dir = ktdo_dir;
+            readfile_dirs = {'17', '19'};
+            data.processing_option = 'all_at_once';
+            data.unwrapping_method_after_combination = 'none';
+            data.mcpc3d_unwrapping_method = 'prelude';
+            data.combination_mode = 'mcpc3d';
+            write_dir = '/home/keckstein/data/test/prelude';
+            data.mcpc3d_echoes = [1 3];
 
     end
     

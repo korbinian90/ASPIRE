@@ -6,7 +6,7 @@ function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
     end
     
     %% get data dimension and other setup stuff
-    preludeStartTime = toc;
+    %preludeStartTime = toc;
     
     nSlices = size(phase, 3);
     nEchoes = size(phase, 4);
@@ -29,8 +29,8 @@ function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
     fn_unwrapped = getFilename(prelude_dir, 'unwrapped', channel);
     if ~exist(fn_unwrapped, 'file')
         % temporary prelude filenames
-        fn_sensitivity = fullfile(prelude_dir, 'weightTemp.nii');
-        fn_phase = fullfile(prelude_dir, 'phaseTemp.nii');
+        fn_sensitivity = getFilename(prelude_dir, 'weight', channel);
+        fn_phase = getFilename(prelude_dir, 'phase', channel);
 
         save_nii(make_nii(phase), fn_phase);
         save_nii(make_nii(sensitivity), fn_sensitivity);
@@ -90,7 +90,7 @@ function unwrapped = preludeUnwrap( data, phase, sensitivity, channel)
         disp('slice corrected image found.');
     end
     unwrapped(:,:,:,:) = unwrapped_nii.img;  
-    fprintf('Prelude unwrapping took %s.\n', secs2hms(toc - preludeStartTime));
+    %fprintf('Prelude unwrapping took %s.\n', secs2hms(toc - preludeStartTime));
 end
 
 function filename = getFilename(prelude_dir, name, channel)

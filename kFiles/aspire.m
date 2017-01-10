@@ -75,6 +75,12 @@ function allSteps(data, i)
     
     %% Main steps
     rpo_smooth = getRPOSelector(data, compl, weight, i);
+    
+    % TIMING END GETRPO
+    if strcmpi(data.processing_option, 'all_at_once')
+       disp(['Time for getRpo: ' secs2hms(toc-time)]);
+    end    
+    
     compl = removeRPO(data.n_echoes, compl, rpo_smooth);
     combined = combineImages(compl, data.weightedCombination);
 
