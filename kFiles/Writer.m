@@ -8,6 +8,7 @@ classdef Writer < handle
         saveSteps
         slice
         slicewise
+        pixdim
     end
     
     methods
@@ -16,6 +17,8 @@ classdef Writer < handle
             obj.superDir = data.write_dir;
             obj.saveSteps = data.save_steps;
             obj.slicewise = strcmp(data.processing_option, 'slice_by_slice');
+            obj.setSubdir('results');
+            obj.pixdim = data.nii_pixdim(2:4);
         end
         
         function write(self, image, name, channels)
@@ -37,19 +40,16 @@ classdef Writer < handle
                 if ndims(image) == 5
                     for iCha = 1:size(image,5)
                         filePath = fullfile(self.path, [name '_c' num2str(channels(iCha)) '.nii']);
-                        save_nii(make_nii(image(:,:,:,:,iCha)), filePath);
+                        self.saveAndCenter(image(:,:,:,:,iCha), filePath);
                     end
                 else
-                    if self.slicewise
-                        name = [name '_' num2str(self.slice)];
-                    end
                     filePath = fullfile(self.path, [name '.nii']);
-                    save_nii(make_nii(image), filePath);
+                    self.saveAndCenter(image, filePath);
                 end
             end
         end
 
-        function setSubDir(self, subdir)
+        function setSubdir(self, subdir)
             if strcmp(subdir, 'results') || self.saveSteps
                 self.path = fullfile(self.superDir, subdir);
                 if ~exist(self.path, 'dir')
@@ -62,6 +62,17 @@ classdef Writer < handle
         
         function setSlice(self, slice)
             self.slice = slice;
+        end
+    end
+    
+    
+    methods (Access = private)
+        function saveAndCenter(self, image, path)
+            if self.slicewise
+                path = [path '_' num2str(self.slice)];
+            end
+            image_nii = make_nii(image, self.pixdim);
+            centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
         end
     end
 end
