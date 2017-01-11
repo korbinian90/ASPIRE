@@ -1,6 +1,6 @@
 clear;
 aspire_startup
-for run=17
+for run=3
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');
@@ -46,6 +46,7 @@ for run=17
             %data.mcpc3di_unwrapping_method = '';
             data.processing_option = 'slice_by_slice';
             data.combination_mode = 'aspire';
+            data.slices = 5:10;
         case 4
             % CSPA 0.5ms Test
             read_dir = cspa_dir;
@@ -188,3 +189,4 @@ for run=17
     disp(['Whole calculation takes: ' secs2hms(toc)]);
     disp(['Files written to: ' write_dir]);
 end
+clear

@@ -52,9 +52,7 @@ classdef Writer < handle
         function setSubdir(self, subdir)
             if strcmp(subdir, 'results') || self.saveSteps
                 self.path = fullfile(self.superDir, subdir);
-                if ~exist(self.path, 'dir')
-                    if ~mkdir(self.path); disp(['Could not create folder: ' self.path]); end;
-                end
+                self.createFolderIfNotExisting(self.path);
             else
                 self.path = '';
             end
@@ -69,10 +67,22 @@ classdef Writer < handle
     methods (Access = private)
         function saveAndCenter(self, image, path)
             if self.slicewise
-                path = [path '_' num2str(self.slice)];
+                [path, name, ext] = fileparts(path);
+                folderPath = fullfile(path, 'sep');
+                self.createFolderIfNotExisting(folderPath);
+                fileName = [name '_' num2str(self.slice) ext];
+                path = fullfile(folderPath, fileName);
             end
             image_nii = make_nii(image, self.pixdim);
             centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
+        end
+    end
+    
+    methods (Static)
+        function createFolderIfNotExisting(path)
+            if ~exist(path, 'dir')
+                if ~mkdir(path); disp(['Could not create folder: ' path]); end;
+            end
         end
     end
 end

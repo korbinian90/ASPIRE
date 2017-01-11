@@ -79,9 +79,11 @@ classdef WriterTest < matlab.unittest.TestCase
             
             sliceNumber = 4;
             [path, fileName] = fileparts(testCase.filePath);
-            fileName = [fullfile(path, fileName) '_4.nii'];
+            fileName = [fullfile(path, 'sep', fileName) '_4.nii'];
             
             sliceWriter.setSlice(sliceNumber);
+            
+            deleteIfExist(fileName);
             
             sliceWriter.write(testCase.image, testCase.name);
             nii = load_nii(fileName);
@@ -118,8 +120,8 @@ classdef WriterTest < matlab.unittest.TestCase
             sliceNumber = 4;
             channels = [1 3];
             [path, fileName] = fileparts(testCase.filePath);
-            fileName1 = [fullfile(path, fileName) '_c1_4.nii'];
-            fileName2 = [fullfile(path, fileName) '_c3_4.nii'];
+            fileName1 = [fullfile(path, 'sep', fileName) '_c1_4.nii'];
+            fileName2 = [fullfile(path, 'sep', fileName) '_c3_4.nii'];
             
             deleteIfExist(fileName1);
             deleteIfExist(fileName2);

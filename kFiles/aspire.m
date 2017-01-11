@@ -54,6 +54,9 @@ end
 
 function allSteps(data, i)
 
+    writer = Writer(data);
+    writer.setSlice(data.slices(i));
+    
     % slice is the anatomical slice (i is the loop counter)
     slice = data.slices(i);
     if strcmpi(data.processing_option, 'all_at_once')
@@ -65,8 +68,11 @@ function allSteps(data, i)
     %% read in the data and get complex + weight (sum of mag)
     [compl, weight] = importImages(data, slice);
 
-    saveNii(data, i, 'steps', angle(compl), 'orig_phase', data.write_channels); % <- temp for paper, debug for 4 argument use!
-        
+    %saveNii(data, i, 'steps', angle(compl), 'orig_phase', data.write_channels); % <- temp for paper, debug for 4 argument use!
+    
+    writer.setSubdir('steps');
+    writer.write(angle(compl), 'orig_phase', data.write_channels);
+    
     % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
        time = toc;
