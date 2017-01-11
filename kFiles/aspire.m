@@ -68,10 +68,8 @@ function allSteps(data, i)
     %% read in the data and get complex + weight (sum of mag)
     [compl, weight] = importImages(data, slice);
 
-    %saveNii(data, i, 'steps', angle(compl), 'orig_phase', data.write_channels); % <- temp for paper, debug for 4 argument use!
-    
     writer.setSubdir('steps');
-    writer.write(angle(compl), 'orig_phase', data.write_channels);
+    writer.write(angle(compl), 'orig_phase', data.write_channels); % <- temp for paper
     
     % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -103,17 +101,19 @@ function allSteps(data, i)
     ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
     
     %% save to disk
-    saveNii(data, i, 'results', combined_phase, 'combined_phase');
-    saveNii(data, i, 'results', abs(combined), 'combined_mag');
+    writer.setSubdir('results');
+    writer.write(combined_phase, 'combined_phase');
+    writer.write(abs(combined), 'combined_mag');
     if isempty(strcmp(data.unwrapping_method, 'none'))
-        saveNii(data, i, 'results', unwrapped, 'unwrapped');
+        writer.write(unwrapped, 'unwrapped');
     end
     if data.save_steps
-        saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
-        saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
-        saveNii(data, i, 'steps', abs(compl), 'mag', data.write_channels);
-        saveNii(data, i, 'steps', ratio, 'ratio');
-        saveNii(data, i, 'steps', weight, 'weight');
+        writer.setSubdir('steps');
+        writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
+        writer.write(compl, 'no_rpo', data.write_channels);
+        writer.write(abs(compl), 'mag', data.write_channels);
+        writer.write(ratio, 'ratio');
+        writer.write(weight, 'weight');
         saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
     end
        
@@ -204,8 +204,11 @@ end
 function saveStruct(data, slice, subdir, save)
 %SAVESTRUCT saves all images from save to disk
     if ~isempty(save)
+        writer = Writer(data);
+        writer.setSubdir(subdir);
+        writer.setSlice(slice);
         for i = 1:length(save.filenames)
-            saveNii(data, slice, subdir, save.images{i}, save.filenames{i});
+            writer.write(save.images{i}, save.filenames{i});
         end
     end
 end
@@ -244,7 +247,10 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
        ~strcmpi(data.combination_mode, 'add') && ...
        ~strcmpi(data.combination_mode, 'MCPCC')
    
-        saveNii(data, i, 'steps', rpo, 'rpo_not_smooth', data.write_channels);
+        writer = Writer(data);
+        writer.setSubdir('steps');
+        writer.setSlice(data.slices(i));
+        writer.write(rpo, 'rpo_not_smooth', data.write_channels);
         rpo = smoothRPO(data, rpo, weight);
     end
     
@@ -403,14 +409,17 @@ function mcpc3dsSliceBySlice(data)
         combined_phase(:,:,i,:) = angle(combined);
 
         %% save to disk
-        saveNii(data, i, 'results', combined_phase(:,:,i,:), 'combined_phase');
+        writer = Writer(data);
+        writer.setSlice(data.slices(i));
+        writer.write(combined_phase(:,:,i,:), 'combined_phase');
         if data.save_steps
             % ratio
             ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
-            saveNii(data, i, 'steps', rpo_smooth, 'rpo_smooth', data.write_channels);
-            saveNii(data, i, 'steps', compl, 'no_rpo', data.write_channels);
-            saveNii(data, i, 'steps', ratio, 'ratio');
-            saveNii(data, i, 'steps', weight, 'weight');
+            writer.setSubdir('steps');
+            writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
+            writer.write(compl, 'no_rpo', data.write_channels);
+            writer.write(ratio, 'ratio');
+            writer.write(weight, 'weight');
         end
         
     end
