@@ -1,6 +1,6 @@
 clear;
 aspire_startup
-for run=3
+for run=18
     %% Config
     net_app = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/';
     cspa_dir = fullfile(net_app, '19860116CSPA_201506051000/nifti/');
@@ -13,7 +13,7 @@ for run=3
     data.combination_mode = 'aspire';
     
     switch run
-        case 18
+        case 1
             % local test
             read_dir = cspa_dir;%fullfile(local_dir, 'CSPA/nifti/');
             readfile_dirs = {'2','4'};
@@ -175,13 +175,14 @@ for run=3
             write_dir = '/home/keckstein/data/test/prelude';
             data.mcpc3d_echoes = [1 3];
         case 18
-            data.parallel = 1;
-            read_dir = 0;
-            readfile_dirs = {};
+            data.parallel = 0;
+            read_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/19881204BRDM_201210091600/nifti';
+            readfile_dirs = {'2', '4'};
             data.processing_option = 'slice_by_slice';
-            data.combination_mode = 'aspire bipolar';
+%             data.combination_mode = 'aspire';
+            data.poCalculator = AspireBipolarPoCalculator;
             
-            write_dir = '/home/keckstein/data/test/bipolar';
+            write_dir = '/home/keckstein/data/test/bipolar2';
 
     end
     

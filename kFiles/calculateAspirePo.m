@@ -1,6 +1,6 @@
-function rpo = calculateAspirePO(compl, e)
+function rpo = calculateAspirePo(compl, e)
     echo = [1 2];
-    if nargs == 2
+    if nargin == 2
         echo = e;
     end
     nChannels = size(compl, 5);

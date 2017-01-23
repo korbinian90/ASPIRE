@@ -78,14 +78,16 @@ function allSteps(data, i)
     end
     
     %% Main steps
-    rpo_smooth = getRPOSelector(data, compl, weight, i);
+    poCalc = data.poCalculator;
+    poCalc.calculatePo(compl);
+    poCalc.smoothPo(data.smoothingKernelSizeInVoxel);
     
     % TIMING END GETRPO
     if strcmpi(data.processing_option, 'all_at_once')
        disp(['Time for getRpo: ' secs2hms(toc-time)]);
     end    
     
-    compl = removeRPO(data.n_echoes, compl, rpo_smooth);
+    compl = poCalc.removePo(compl);
     combined = combineImages(compl, data.weightedCombination);
 
     % TIMING END COMBINATION
@@ -109,7 +111,7 @@ function allSteps(data, i)
     end
     if data.save_steps
         writer.setSubdir('steps');
-        writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
+%         writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
         writer.write(compl, 'no_rpo', data.write_channels);
         writer.write(abs(compl), 'mag', data.write_channels);
         writer.write(ratio, 'ratio');
