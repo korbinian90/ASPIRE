@@ -231,10 +231,10 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
         rpo = getRPO_MCPCC(compl);
     elseif strcmpi(data.combination_mode, 'add')
         rpo = complex(ones(data.dim(1:4),'single'));
-    elseif strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3')
+    elseif strcmpi(data.combination_mode, 'umpire')
         [rpo, save] = getRPO_aspireUmpire(data, compl, weight);
         saveStruct(data, i, 'cusp3_getRPO', save); clear save;
-    elseif strcmp(data.combination_mode, 'cusp2') || strcmpi(data.combination_mode, 'aspire')
+    elseif strcmpi(data.combination_mode, 'aspire')
         [rpo, save] = getRPO_aspire(data, compl);
         saveStruct(data, i, 'aspire_getRPO', save); clear save;
     else
