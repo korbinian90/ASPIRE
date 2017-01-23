@@ -9,7 +9,7 @@ function [ rpo, save ] = getRPO_MCPC3D_improved( data, compl )
         echo = [1 2];
     end
     
-    hermitian = calculateHip(data.mcpc3d_echoes, compl);
+    hermitian = calculateHip(compl, data.mcpc3d_echoes);
     
     % UNWRAP HIP
     unwrappingData = data;

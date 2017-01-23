@@ -3,7 +3,7 @@ function [ rpo, save ] = getRPO_aspire(data, compl)
 %   Detailed explanation goes here
 
     % hermitian inner product combination
-    hermitian = calculateHip(data.aspire_echoes, compl);
+    hermitian = calculateHip(compl, data.aspire_echoes);
     save = toSave([], hermitian, 'scaled_fm');
     
     % subtract hermitian to get RPO

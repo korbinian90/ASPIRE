@@ -1,5 +1,9 @@
-function hermitian = calculateHip(echo, compl)
-    
+function hermitian = calculateHip(compl, e)
+    echo = [1 2];
+    if nargs == 2
+        echo = e;
+    end
+
     dim = size(compl);
     hermitian = zeros(dim(1:3));
     for iCha = 1:size(compl, 5)

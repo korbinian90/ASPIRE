@@ -237,6 +237,8 @@ function [ rpo ] = getRPOSelector(data, compl, weight, i)
     elseif strcmpi(data.combination_mode, 'aspire')
         [rpo, save] = getRPO_aspire(data, compl);
         saveStruct(data, i, 'aspire_getRPO', save); clear save;
+    elseif strcmpi(data.combination_meode, 'aspire bipolar')
+        rpo = getRPO_aspireBipolar(data, compl);
     else
         error([data.combination_mode ' is no valid combination mode']);
     end
@@ -375,7 +377,7 @@ function mcpc3dsSliceBySlice(data)
         % read in the data and get complex + weight (sum of mag)
         compl = importImages(data, slice);
         
-        hip(:,:,i) = calculateHip(data.mcpc3d_echoes, compl);
+        hip(:,:,i) = calculateHip(compl, data.mcpc3d_echoes);
     end
     clear compl;
     

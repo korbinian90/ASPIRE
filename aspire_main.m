@@ -13,7 +13,7 @@ for run=3
     data.combination_mode = 'aspire';
     
     switch run
-        case 1
+        case 18
             % local test
             read_dir = cspa_dir;%fullfile(local_dir, 'CSPA/nifti/');
             readfile_dirs = {'2','4'};
@@ -174,6 +174,14 @@ for run=3
             data.combination_mode = 'mcpc3d';
             write_dir = '/home/keckstein/data/test/prelude';
             data.mcpc3d_echoes = [1 3];
+        case 18
+            data.parallel = 1;
+            read_dir = 0;
+            readfile_dirs = {};
+            data.processing_option = 'slice_by_slice';
+            data.combination_mode = 'aspire bipolar';
+            
+            write_dir = '/home/keckstein/data/test/bipolar';
 
     end
     
