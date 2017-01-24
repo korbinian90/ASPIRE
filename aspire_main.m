@@ -1,4 +1,4 @@
-clear;
+clear
 aspire_startup
 for run=18
     %% Config
@@ -178,11 +178,12 @@ for run=18
             data.parallel = 0;
             read_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/19881204BRDM_201210091600/nifti';
             readfile_dirs = {'2', '4'};
-            data.processing_option = 'slice_by_slice';
+            data.processing_option = 'all_at_once';
 %             data.combination_mode = 'aspire';
-            data.poCalculator = AspireBipolarPoCalculator;
+            data.poCalculator = Mcpc3dsPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator
+            data.slices = 10:15;
             
-            write_dir = '/home/keckstein/data/test/bipolar2';
+            write_dir = '/home/keckstein/data/test/bipolar';
 
     end
     

@@ -79,8 +79,10 @@ function allSteps(data, i)
     
     %% Main steps
     poCalc = data.poCalculator;
+    poCalc.setup(data);
     poCalc.calculatePo(compl);
-    poCalc.smoothPo(data.smoothingKernelSizeInVoxel);
+    poCalc.smoothPo();
+    poCalc.normalizePo();
     
     % TIMING END GETRPO
     if strcmpi(data.processing_option, 'all_at_once')
