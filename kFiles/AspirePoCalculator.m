@@ -20,10 +20,14 @@ methods
 end
 
 methods (Static)
-    function po = calculateAspirePo(compl, aspireEchoes)
+    function po = calculateAspirePo(compl, aspireEchoes, m)
         hip = calculateHip(compl, aspireEchoes);
+        
+        if nargin == 3
+            hip = hip .^ m;
+        end
 
-        po = AspirePoCalculator.subtractHipFromEcho(compl, hip, aspireEchoes(1));
+        po = AspirePoCalculator.subtractFromEcho(compl, hip, aspireEchoes(1));
     end
 end
     

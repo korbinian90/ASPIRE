@@ -8,10 +8,16 @@ methods
     % override
     function calculatePo(self, compl)
         a12 = self.calculateAspirePo(compl, [1 2]);
-        a23 = self.calculateAspirePo(compl, [2 3]);
-
-        self.po = (2 * a12) - a23;
-        self.po2 = (2 * self.po - a12);
+        a23 = self.calculateAspirePo(compl, [2 3], 2);
+        self.writer.write(a12, 'a12');
+        self.writer.write(a23, 'a23');
+        a12 = self.normalize(a12);
+        a23 = self.normalize(a23);
+        
+        self.po = (a12 .^ 2) .* conj(a23);
+        self.po2 = (self.po .^2) .* conj(a12);
+        self.writer.write(self.po, 'po');
+        self.writer.write(self.po2, 'po2');
     end
     % override
     function compl = removePo(self, compl)
@@ -25,9 +31,9 @@ methods
         end
     end
     % override
-    function smoothPo(self, sigmaInVoxel)
-        self.po = self.smooth(self.po, sigmaInVoxel);
-        self.po2 = self.smooth(self.po2, sigmaInVoxel);
+    function smoothPo(self)
+        self.po = self.smooth(self.po, self.sigmaInVoxel);
+        self.po2 = self.smooth(self.po2, self.sigmaInVoxel);
     end
     % override
     function normalizePo(self)

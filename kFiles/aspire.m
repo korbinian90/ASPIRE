@@ -114,6 +114,10 @@ function allSteps(data, i)
     if data.save_steps
         writer.setSubdir('steps');
 %         writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
+        writer.write(poCalc.po, 'po', data.write_channels);
+        if isa(poCalc, 'AspireBipolarPoCalculator')
+            writer.write(poCalc.po2, 'po2', data.write_channels);
+        end
         writer.write(compl, 'no_rpo', data.write_channels);
         writer.write(abs(compl), 'mag', data.write_channels);
         writer.write(ratio, 'ratio');
@@ -215,51 +219,6 @@ function saveStruct(data, slice, subdir, save)
             writer.write(save.images{i}, save.filenames{i});
         end
     end
-end
-
-
-function [ rpo ] = getRPOSelector(data, compl, weight, i)
-%GETRPOSELECTOR calls the selected method for obtaining the RPO and smooths
-%it
-    
-    %% get RPO
-    if strcmpi(data.combination_mode, 'composer')
-        rpo = getRPO_composer(data, i);
-    elseif strcmpi(data.combination_mode, 'MCPC3D')
-        [rpo, save] = getRPO_MCPC3D_saving(data, compl);
-        saveStruct(data, i, 'MCPC3D_getRPO', save); clear save;
-    elseif strcmpi(data.combination_mode, 'MCPC3DS')
-        [rpo, save] = getRPO_MCPC3Ds(data, compl);
-        saveStruct(data, i, 'MCPC3Ds_getRPO', save); clear save;
-    elseif strcmpi(data.combination_mode, 'MCPCC')
-        rpo = getRPO_MCPCC(compl);
-    elseif strcmpi(data.combination_mode, 'add')
-        rpo = complex(ones(data.dim(1:4),'single'));
-    elseif strcmpi(data.combination_mode, 'umpire')
-        [rpo, save] = getRPO_aspireUmpire(data, compl, weight);
-        saveStruct(data, i, 'cusp3_getRPO', save); clear save;
-    elseif strcmpi(data.combination_mode, 'aspire')
-        [rpo, save] = getRPO_aspire(data, compl);
-        saveStruct(data, i, 'aspire_getRPO', save); clear save;
-    elseif strcmpi(data.combination_meode, 'aspire bipolar')
-        rpo = getRPO_aspireBipolar(data, compl);
-    else
-        error([data.combination_mode ' is no valid combination mode']);
-    end
-
-    %% smooth RPO
-    % composer and constant RPOs are already smooth
-    if ~strcmpi(data.combination_mode, 'composer') && ...
-       ~strcmpi(data.combination_mode, 'add') && ...
-       ~strcmpi(data.combination_mode, 'MCPCC')
-   
-        writer = Writer(data);
-        writer.setSubdir('steps');
-        writer.setSlice(data.slices(i));
-        writer.write(rpo, 'rpo_not_smooth', data.write_channels);
-        rpo = smoothRPO(data, rpo, weight);
-    end
-    
 end
 
 

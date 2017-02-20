@@ -1,4 +1,4 @@
-function [ unwrapped ] = echoJumpCorrection( unwrapped, unwrappedHip, TE1, TE2)
+function [ unwrapped ] = echoJumpCorrection( unwrapped, unwrappedHip, TEs)
 
     %% produce mask
     % take the middle part of the image as mask
@@ -10,8 +10,8 @@ function [ unwrapped ] = echoJumpCorrection( unwrapped, unwrappedHip, TE1, TE2)
     mask(mask_x,mask_y,mask_z) = 1;
     
     %% first echo
-    hipEchoTime = TE2 - TE1;
-    diff1 = (unwrapped(:,:,:,1) - (unwrappedHip * (TE1 / hipEchoTime))) / (2*pi);
+    hipEchoTime = TEs(2) - TEs(1);
+    diff1 = (unwrapped(:,:,:,1) - (unwrappedHip * (TEs(1) / hipEchoTime))) / (2*pi);
         
     n2pi1 = round(median(diff1(mask == 1)));
     

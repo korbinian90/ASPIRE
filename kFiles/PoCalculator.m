@@ -3,6 +3,7 @@ classdef (Abstract) PoCalculator < handle
 properties
     po
     sigmaInVoxel
+    writer
 end
 
 methods (Abstract)
@@ -12,6 +13,8 @@ end
 methods
     function setup(self, data)
         self.sigmaInVoxel = data.smoothingKernelSizeInVoxel;
+        self.writer = Writer(data);
+        self.writer.setSubdir('poCalculation');
     end
     
     function compl = removePo(self, compl)
@@ -42,7 +45,7 @@ methods (Static)
         po = po ./ abs(po);
     end
     
-    function po = subtractHipFromEcho(compl, hip, echo)
+    function po = subtractFromEcho(compl, hip, echo)
         nChannels = size(compl, 5);
         size_compl = size(compl);
 

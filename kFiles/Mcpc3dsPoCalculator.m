@@ -20,7 +20,7 @@ methods
         unwrappedHip = self.scaleHip(unwrappedHip);
         hipComplex = exp(1i * unwrappedHip);
         
-        self.po = self.subtractHipFromEcho(compl, hipComplex, 1);
+        self.po = self.subtractFromEcho(compl, hipComplex, 1);
     end
    
 end
