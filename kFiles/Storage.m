@@ -1,4 +1,4 @@
-classdef Writer < handle
+classdef Storage < handle
     %WRITER Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -9,16 +9,18 @@ classdef Writer < handle
         slice
         slicewise
         pixdim
+        channels
     end
     
     methods
         
-        function obj = Writer(data)
+        function obj = Storage(data)
             obj.superDir = data.write_dir;
             obj.saveSteps = data.save_steps;
             obj.slicewise = strcmp(data.processing_option, 'slice_by_slice');
             obj.setSubdir('results');
             obj.pixdim = data.nii_pixdim(2:4);
+            obj.channels = data.channels;
         end
         
         function write(self, image, name, channels)
@@ -61,9 +63,34 @@ classdef Writer < handle
         function setSlice(self, slice)
             self.slice = slice;
         end
+        
+        function path = getPath(self)
+            path = self.path;
+        end
+        
+        function compl = importImages(self, data)
+            phase = data.filename_phase;
+            mag = data.filename_mag;
+            
+            compl = single(1i * self.getPhase(phase));
+            compl = exp(compl);
+            compl = self.getMag(mag) .* compl;
+        end
+        
+        function mag = getMag(self, filename)
+            mag = self.getImage(filename);
+            % avoid 0 values in mag (and nagative)
+            meanMag = mean(mag(:));
+            minMag = meanMag / 10000;
+            mag(mag < minMag) = minMag;
+        end
+        
+        function phase = getPhase(self, filename)
+            phase = self.getImage(filename);
+            phase = rescale(phase, -pi, pi);
+        end
     end
-    
-    
+
     methods (Access = private)
         function saveAndCenter(self, image, path)
             if self.slicewise
@@ -75,6 +102,15 @@ classdef Writer < handle
             end
             image_nii = make_nii(image, self.pixdim);
             centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
+        end
+        
+        function image = getImage(self, filename)
+            if self.slicewise
+                nii = load_nii_slice(filename, self.slice, [], self.channels);
+            else
+                nii = load_nii(filename, [], self.channels);
+            end
+            image = single(nii.img);
         end
     end
     

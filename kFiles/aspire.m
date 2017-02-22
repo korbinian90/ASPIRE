@@ -30,9 +30,10 @@ function allPipelines(data)
         slice_loop = length(data.slices);
     end
     
-    if strcmpi(data.combination_mode, 'composer')
-        data = preCompute_composer(data);
-    end    
+    data.storage = Storage(data);
+    poCalc = data.poCalculator;
+    poCalc.setup(data, storage);
+    poCalc.preprocess();
     
     % CALCULATION
     if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
@@ -54,11 +55,11 @@ end
 
 function allSteps(data, i)
 
-    writer = Writer(data);
-    writer.setSlice(data.slices(i));
-    
     % slice is the anatomical slice (i is the loop counter)
     slice = data.slices(i);
+    storage = data.storage;
+    storage.setSlice(slice);
+    
     if strcmpi(data.processing_option, 'all_at_once')
         disp('calculating all at once, it could take a while...');
     else
@@ -66,10 +67,10 @@ function allSteps(data, i)
     end
     
     %% read in the data and get complex + weight (sum of mag)
-    [compl, weight] = importImages(data, slice);
+    compl = storage.importImages(data);
 
-    writer.setSubdir('steps');
-    writer.write(angle(compl), 'orig_phase', data.write_channels); % <- temp for paper
+    storage.setSubdir('steps');
+    storage.write(angle(compl), 'orig_phase', data.write_channels); % <- temp for paper
     
     % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -79,7 +80,6 @@ function allSteps(data, i)
     
     %% Main steps
     poCalc = data.poCalculator;
-    poCalc.setup(data);
     poCalc.calculatePo(compl);
     poCalc.smoothPo();
     poCalc.normalizePo();
@@ -99,29 +99,24 @@ function allSteps(data, i)
     
     %% unwrap combined phase
     combined_phase = angle(combined);
-    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, weight);
+    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, abs(combined));
     
     %% ratio
     ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
     
     %% save to disk
-    writer.setSubdir('results');
-    writer.write(combined_phase, 'combined_phase');
-    writer.write(abs(combined), 'combined_mag');
+    storage.setSubdir('results');
+    storage.write(combined_phase, 'combined_phase');
+    storage.write(abs(combined), 'combined_mag');
     if isempty(strcmp(data.unwrapping_method, 'none'))
-        writer.write(unwrapped, 'unwrapped');
+        storage.write(unwrapped, 'unwrapped');
     end
     if data.save_steps
-        writer.setSubdir('steps');
-%         writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
-        writer.write(poCalc.po, 'po', data.write_channels);
-        if isa(poCalc, 'AspireBipolarPoCalculator')
-            writer.write(poCalc.po2, 'po2', data.write_channels);
-        end
-        writer.write(compl, 'no_rpo', data.write_channels);
-        writer.write(abs(compl), 'mag', data.write_channels);
-        writer.write(ratio, 'ratio');
-        writer.write(weight, 'weight');
+        storage.setSubdir('steps');
+        storage.write(poCalc.po, 'po', data.write_channels);
+        storage.write(compl, 'no_rpo', data.write_channels);
+        storage.write(abs(compl), 'mag', data.write_channels);
+        storage.write(ratio, 'ratio');
         saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
     end
        
@@ -180,73 +175,18 @@ function setupFolder(data)
 end
 
 
-function [ compl, weight ] = importImages(data, real_slice)
-
-    if strcmpi(data.processing_option, 'all_at_once')
-        % read in full image
-        phase_nii = load_nii(data.filename_phase, [], data.channels);
-        mag_nii = load_nii(data.filename_mag, [], data.channels);
-    else
-        % read in the slice
-        phase_nii = load_nii_slice(data.filename_phase, real_slice, [], data.channels);
-        mag_nii = load_nii_slice(data.filename_mag, real_slice, [], data.channels);
-    end
-
-    %% precomputation steps (save memory)
-    mag = single(mag_nii.img); clear mag_nii
-    max_val = max(mag(:));
-    min_val = max_val / 10000;
-    mag = single(rescale(mag, min_val, max_val));
-    phase = single(rescale(phase_nii.img, -pi, pi)); clear phase_nii
-    compl = single(1i * phase); clear phase
-    compl = exp(compl);
-    compl = mag .* compl;
-    
-    % use the sum of magnitudes as weight (all channels and all echoes
-    % summed up)
-    weight = sum(sum(mag, 5), 4);
-    
-end
-
-
 function saveStruct(data, slice, subdir, save)
 %SAVESTRUCT saves all images from save to disk
     if ~isempty(save)
-        writer = Writer(data);
-        writer.setSubdir(subdir);
-        writer.setSlice(slice);
+        storage = Storage(data);
+        storage.setSubdir(subdir);
+        storage.setSlice(slice);
         for i = 1:length(save.filenames)
-            writer.write(save.images{i}, save.filenames{i});
+            storage.write(save.images{i}, save.filenames{i});
         end
     end
 end
 
-
-function [ compl ] = removeRPO(nEchoes, compl, rpo_smooth)
-%REMOVERPO Removes the RPO from the complex data
-% keeps the magnitude values
-
-    for eco = 1:nEchoes
-        compl(:,:,:,eco,:) = squeeze(compl(:,:,:,eco,:)) .* squeeze(conj(rpo_smooth)) ./ squeeze(abs(rpo_smooth));
-    end
-
-end
-
-
-function [ smoothed_rpo ] = smoothRPO(data, rpo, weight)
-%SMOOTHRPO Smoothes the RPO
-    smoothed_rpo = complex(zeros(size(rpo),'single'));
-    % assuming same size in x and y dimension
-    sigma_size = data.smoothingKernelSizeInVoxel;
-    % toggle smoothing
-    if ~data.rpo_weigthedSmoothing
-        weight = [];
-    end
-    parfor cha = 1:data.n_channels
-        smoothed_rpo(:,:,:,cha) = weightedGaussianSmooth(rpo(:,:,:,cha), sigma_size, weight);
-    end
-
-end
 
 
 function [ ratio ] = calcRatio(nEchoes, combined, compl, doWeighted)
@@ -374,17 +314,17 @@ function mcpc3dsSliceBySlice(data)
         combined_phase(:,:,i,:) = angle(combined);
 
         %% save to disk
-        writer = Writer(data);
-        writer.setSlice(data.slices(i));
-        writer.write(combined_phase(:,:,i,:), 'combined_phase');
+        storage = Storage(data);
+        storage.setSlice(data.slices(i));
+        storage.write(combined_phase(:,:,i,:), 'combined_phase');
         if data.save_steps
             % ratio
             ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
-            writer.setSubdir('steps');
-            writer.write(rpo_smooth, 'rpo_smooth', data.write_channels);
-            writer.write(compl, 'no_rpo', data.write_channels);
-            writer.write(ratio, 'ratio');
-            writer.write(weight, 'weight');
+            storage.setSubdir('steps');
+            storage.write(rpo_smooth, 'rpo_smooth', data.write_channels);
+            storage.write(compl, 'no_rpo', data.write_channels);
+            storage.write(ratio, 'ratio');
+            storage.write(weight, 'weight');
         end
         
     end

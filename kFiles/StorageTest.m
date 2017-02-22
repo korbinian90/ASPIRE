@@ -1,7 +1,7 @@
-classdef WriterTest < matlab.unittest.TestCase
+classdef StorageTest < matlab.unittest.TestCase
     
     properties (Access = private)
-        writer
+        storage
         name
         filePath
         image
@@ -24,8 +24,8 @@ classdef WriterTest < matlab.unittest.TestCase
             deleteIfExist(testCase.filePath);
             
             testCase.image = rand(data.imageDims);
-            testCase.writer = Writer(data);
-            testCase.writer.setSubdir(subdir);
+            testCase.storage = Storage(data);
+            testCase.storage.setSubdir(subdir);
             testCase.writeDir = data.write_dir;
             testCase.d = data;
         end
@@ -34,7 +34,7 @@ classdef WriterTest < matlab.unittest.TestCase
     methods (Test)
         function testIfRetrievedFileMatchesOriginal(testCase)
             
-            testCase.writer.write(testCase.image, testCase.name);
+            testCase.storage.write(testCase.image, testCase.name);
             nii = load_nii(testCase.filePath);
             testCase.verifyEqual(nii.img, testCase.image);
             
@@ -47,8 +47,8 @@ classdef WriterTest < matlab.unittest.TestCase
             file = fullfile(testCase.writeDir, subdir, [testCase.name '.nii']);
             deleteIfExist(file);
             
-            testCase.writer.setSubdir(subdir);
-            testCase.writer.write(testCase.image, testCase.name);
+            testCase.storage.setSubdir(subdir);
+            testCase.storage.write(testCase.image, testCase.name);
             
             testCase.verifyEqual(exist(file, 'file'), 0);
         end
@@ -56,7 +56,7 @@ classdef WriterTest < matlab.unittest.TestCase
         function testWriteOnlySomeChannels(testCase)
             
             channels = [1 4];
-            testCase.writer.write(testCase.image, testCase.name, channels);
+            testCase.storage.write(testCase.image, testCase.name, channels);
             
             nii = load_nii(testCase.filePath);
             
@@ -67,7 +67,7 @@ classdef WriterTest < matlab.unittest.TestCase
             
             complexImage = exp(1i * testCase.image);
             
-            testCase.writer.write(complexImage, testCase.name);
+            testCase.storage.write(complexImage, testCase.name);
             nii = load_nii(testCase.filePath);
             testCase.verifyEqual(nii.img, angle(complexImage));
         end
@@ -75,17 +75,17 @@ classdef WriterTest < matlab.unittest.TestCase
         function testWriteSliceBySlice(testCase)
             data = testCase.d;
             data.processing_option = 'slice_by_slice';
-            sliceWriter = Writer(data);
+            sliceStorage = Storage(data);
             
             sliceNumber = 4;
             [path, fileName] = fileparts(testCase.filePath);
             fileName = [fullfile(path, 'sep', fileName) '_4.nii'];
             
-            sliceWriter.setSlice(sliceNumber);
+            sliceStorage.setSlice(sliceNumber);
             
             deleteIfExist(fileName);
             
-            sliceWriter.write(testCase.image, testCase.name);
+            sliceStorage.write(testCase.image, testCase.name);
             nii = load_nii(fileName);
             testCase.verifyEqual(nii.img, testCase.image);
         end
@@ -102,7 +102,7 @@ classdef WriterTest < matlab.unittest.TestCase
             deleteIfExist(fileName1);
             deleteIfExist(fileName2);
             
-            testCase.writer.write(image5D, testCase.name, channels);
+            testCase.storage.write(image5D, testCase.name, channels);
             
             nii_c1 = load_nii(fileName1);
             nii_c2 = load_nii(fileName2);
@@ -114,7 +114,7 @@ classdef WriterTest < matlab.unittest.TestCase
         function test5DSepChannelSlicewise(testCase)
             data = testCase.d;
             data.processing_option = 'slice_by_slice';
-            sliceWriter = Writer(data);
+            sliceStorage = Storage(data);
             
             image5D = rand([2 3 1 5 6]);
             sliceNumber = 4;
@@ -126,8 +126,8 @@ classdef WriterTest < matlab.unittest.TestCase
             deleteIfExist(fileName1);
             deleteIfExist(fileName2);
             
-            sliceWriter.setSlice(sliceNumber);
-            sliceWriter.write(image5D, testCase.name, channels);
+            sliceStorage.setSlice(sliceNumber);
+            sliceStorage.write(image5D, testCase.name, channels);
             
             nii_c1 = load_nii(fileName1);
             nii_c2 = load_nii(fileName2);

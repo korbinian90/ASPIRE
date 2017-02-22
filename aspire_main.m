@@ -182,7 +182,7 @@ for run=18
 %             readfile_dirs = {'15', '17'};
             data.processing_option = 'all_at_once';
 %             data.combination_mode = 'aspire';
-            data.poCalculator = VrcPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
+            data.poCalculator = AspirePoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
 %             data.slices = 10:15;
             
             write_dir = '/home/keckstein/data/test/mcpc3d1';

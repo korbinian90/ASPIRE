@@ -3,7 +3,7 @@ classdef (Abstract) PoCalculator < handle
 properties
     po
     sigmaInVoxel
-    writer
+    storage
 end
 
 methods (Abstract)
@@ -11,10 +11,13 @@ methods (Abstract)
 end
 
 methods
-    function setup(self, data)
+    function setup(self, data, storage)
         self.sigmaInVoxel = data.smoothingKernelSizeInVoxel;
-        self.writer = Writer(data);
-        self.writer.setSubdir('poCalculation');
+        self.storage = storage;
+        self.storage.setSubdir('poCalculation');
+    end
+    
+    function preprocess(~)
     end
     
     function compl = removePo(self, compl)

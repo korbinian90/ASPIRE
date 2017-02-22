@@ -19,7 +19,7 @@ methods
         
         self.po = self.subtractFromEcho(compl, vrcCoil, 1);
         
-        self.writer.write(vrcCoil, 'vrcCoil');
+        self.storage.write(vrcCoil, 'vrcCoil');
         
     end
    
