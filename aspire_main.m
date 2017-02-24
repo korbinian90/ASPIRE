@@ -180,9 +180,9 @@ for run=18
             readfile_dirs = {'2', '4'};
 %             read_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/p_ke_20170124/nifti';
 %             readfile_dirs = {'15', '17'};
-            data.processing_option = 'all_at_once';
+            data.processing_option = 'slice_by_slice'; % all_at_once, slice_by_slice
 %             data.combination_mode = 'aspire';
-            data.poCalculator = AspirePoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
+            data.poCalculator = Mcpc3dsSlicewisePoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
 %             data.slices = 10:15;
             
             write_dir = '/home/keckstein/data/test/mcpc3d1';

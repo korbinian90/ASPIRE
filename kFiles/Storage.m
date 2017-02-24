@@ -10,6 +10,7 @@ classdef Storage < handle
         slicewise
         pixdim
         channels
+        filenames
     end
     
     methods
@@ -21,6 +22,8 @@ classdef Storage < handle
             obj.setSubdir('results');
             obj.pixdim = data.nii_pixdim(2:4);
             obj.channels = data.channels;
+            obj.filenames.mag = data.filename_mag;
+            obj.filenames.phase = data.filename_phase;
         end
         
         function write(self, image, name, channels)
@@ -68,9 +71,9 @@ classdef Storage < handle
             path = self.path;
         end
         
-        function compl = importImages(self, data)
-            phase = data.filename_phase;
-            mag = data.filename_mag;
+        function compl = importImages(self)
+            phase = self.filenames.phase;
+            mag = self.filenames.mag;
             
             compl = single(1i * self.getPhase(phase));
             compl = exp(compl);
@@ -89,20 +92,6 @@ classdef Storage < handle
             phase = self.getImage(filename);
             phase = rescale(phase, -pi, pi);
         end
-    end
-
-    methods (Access = private)
-        function saveAndCenter(self, image, path)
-            if self.slicewise
-                [path, name, ext] = fileparts(path);
-                folderPath = fullfile(path, 'sep');
-                self.createFolderIfNotExisting(folderPath);
-                fileName = [name '_' num2str(self.slice) ext];
-                path = fullfile(folderPath, fileName);
-            end
-            image_nii = make_nii(image, self.pixdim);
-            centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
-        end
         
         function image = getImage(self, filename)
             if self.slicewise
@@ -111,6 +100,24 @@ classdef Storage < handle
                 nii = load_nii(filename, [], self.channels);
             end
             image = single(nii.img);
+        end
+        
+        function image = getImageInPath(self, filename)
+            image = self.getImage(fullfile(self.path, filename));
+        end
+    end
+
+    methods (Access = private)
+        function saveAndCenter(self, image, path)
+            if self.slicewise && (size(image, 3) == 1)
+                [path, name, ext] = fileparts(path);
+                folderPath = fullfile(path, 'sep');
+                self.createFolderIfNotExisting(folderPath);
+                fileName = [name '_' num2str(self.slice) ext];
+                path = fullfile(folderPath, fileName);
+            end
+            image_nii = make_nii(image, self.pixdim);
+            centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
         end
     end
     

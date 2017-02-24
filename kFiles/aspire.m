@@ -32,7 +32,7 @@ function allPipelines(data)
     
     data.storage = Storage(data);
     poCalc = data.poCalculator;
-    poCalc.setup(data, storage);
+    poCalc.setup(data);
     poCalc.preprocess();
     
     % CALCULATION
@@ -56,18 +56,18 @@ end
 function allSteps(data, i)
 
     % slice is the anatomical slice (i is the loop counter)
-    slice = data.slices(i);
+    iSlice = data.slices(i);
     storage = data.storage;
-    storage.setSlice(slice);
+    storage.setSlice(iSlice);
     
     if strcmpi(data.processing_option, 'all_at_once')
         disp('calculating all at once, it could take a while...');
     else
-        disp(['calculating slice: ' num2str(slice)]);
+        disp(['calculating slice: ' num2str(iSlice)]);
     end
     
     %% read in the data and get complex + weight (sum of mag)
-    compl = storage.importImages(data);
+    compl = storage.importImages();
 
     storage.setSubdir('steps');
     storage.write(angle(compl), 'orig_phase', data.write_channels); % <- temp for paper
@@ -80,6 +80,7 @@ function allSteps(data, i)
     
     %% Main steps
     poCalc = data.poCalculator;
+    poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
     poCalc.smoothPo();
     poCalc.normalizePo();
@@ -256,90 +257,4 @@ function error = concatImages(folder, data_slices, image_name)
         % make headers right
         centre_hdr_nii(filename);
         
-end
-
-
-%% MCPC3Ds slice by slice option
-function mcpc3dsSliceBySlice(data)
-
-    slice_loop = length(data.slices);
-    slices = data.slices;
-    
-    if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
-        % do parallelized (only works when slice_by_slice)
-        matlabpool('open', data.parallel);      
-    end
-    %% Calculate Hermitian inner product
-    hip = complex(zeros(data.dim, 'single'));
-    
-    parfor i = 1:slice_loop
-        % slice is the anatomical slice (i is the loop counter)
-        slice = slices(i);
-        disp(['First loop calculating slice: ' num2str(slice)]);
-        
-        % read in the data and get complex + weight (sum of mag)
-        compl = importImages(data, slice);
-        
-        hip(:,:,i) = calculateHip(compl, data.mcpc3d_echoes);
-    end
-    clear compl;
-    
-    unwrappingData = data;
-    unwrappingData.unwrapping_method = data.mcpc3ds_unwrapping_method;
-    unwrappedHip = unwrappingSelector(unwrappingData, angle(hip), abs(hip)); clear hip;
-
-    combined_phase = zeros([data.dim data.n_echoes], 'single');
-    weightVolume = zeros(data.dim, 'single');
-    parfor i = 1:slice_loop
-        slice = slices(i);
-        disp(['Second loop calculating slice: ' num2str(slice)]);
-        
-        %% read in the data and get complex + weight (sum of mag)
-        [compl, weight] = importImages(data, slice);
-        weightVolume(:,:,i) = weight;
-        
-        %% get RPO
-        rpo = getRPO_MCPC3Ds_sliceBySlice(data, compl, unwrappedHip(:,:,i));
-        
-        %% smooth RPO
-        rpo_smooth = smoothRPO(data, rpo);
-
-        %% remove RPO
-        compl = removeRPO(data.n_echoes, compl, rpo_smooth);
-
-        %% combine
-        combined = combineImages(compl, data.weightedCombination);
-        
-        %% unwrap combined phase
-        combined_phase(:,:,i,:) = angle(combined);
-
-        %% save to disk
-        storage = Storage(data);
-        storage.setSlice(data.slices(i));
-        storage.write(combined_phase(:,:,i,:), 'combined_phase');
-        if data.save_steps
-            % ratio
-            ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
-            storage.setSubdir('steps');
-            storage.write(rpo_smooth, 'rpo_smooth', data.write_channels);
-            storage.write(compl, 'no_rpo', data.write_channels);
-            storage.write(ratio, 'ratio');
-            storage.write(weight, 'weight');
-        end
-        
-    end
-    
-    if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
-        % do parallelized (only works when slice_by_slice)
-        matlabpool('close');      
-    end
-    
-    if ~strcmpi(data.unwrapping_method, 'none')
-        unwrapped = unwrappingSelector(data, combined_phase, weightVolume);
-
-        filenameUnwrapped = fullfile(data.write_dir, 'results', 'unwrapped.nii');
-        image_nii = make_nii(unwrapped, data.nii_pixdim(2:4));
-        centre_and_save_nii(image_nii, filenameUnwrapped, image_nii.hdr.dime.pixdim);
-    end
-    
 end

@@ -12,12 +12,8 @@ methods
     end
     % override
     function calculatePo(self, compl)
-        
-        hip = calculateHip(compl);
+        unwrappedHip = self.getUnwrappedHip(compl);
 
-        unwrappedHip = cusackUnwrap(angle(hip), abs(hip));
-        
-        unwrappedHip = self.scaleHip(unwrappedHip);
         hipComplex = exp(1i * unwrappedHip);
         
         self.po = self.subtractFromEcho(compl, hipComplex, 1);
@@ -25,7 +21,14 @@ methods
    
 end
 
-methods (Access = private)
+methods (Access = protected)
+    
+    function unwrappedHip = getUnwrappedHip(self, compl)
+        hip = calculateHip(compl);
+        unwrappedHip = cusackUnwrap(angle(hip), abs(hip));
+        unwrappedHip = self.scaleHip(unwrappedHip);
+    end
+    
     function unwrappedHip = scaleHip(self, unwrappedHip)
         scale = self.TEs(1) / (self.TEs(2) - self.TEs(1));
         unwrappedHip = unwrappedHip * scale;

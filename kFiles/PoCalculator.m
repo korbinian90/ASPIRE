@@ -11,13 +11,17 @@ methods (Abstract)
 end
 
 methods
-    function setup(self, data, storage)
+    function setup(self, data)
         self.sigmaInVoxel = data.smoothingKernelSizeInVoxel;
-        self.storage = storage;
+        self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
     end
     
     function preprocess(~)
+    end
+    
+    function setSlice(self, slice)
+        self.storage.setSlice(slice);
     end
     
     function compl = removePo(self, compl)
