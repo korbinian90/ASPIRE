@@ -1,21 +1,14 @@
 classdef VrcPoCalculator < PoCalculator
     
-properties
-    TEs
-    fovReductionFactor
+properties (Constant)
+    fovReductionFactor = 4
 end
 
 methods
     % override
-    function setup(self, data)
-        setup@PoCalculator(self, data); % call super-method
-        self.TEs = data.TEs;
-        self.fovReductionFactor = 4;
-    end
-    % override
     function calculatePo(self, compl)
         
-        vrcCoil = self.phaseMatchingOfChannelsSeperately(squeeze(compl(:,:,:,1,:)));
+        vrcCoil = self.phaseMatchingOfChannelsSeparately(squeeze(compl(:,:,:,1,:)));
         
         self.po = self.subtractFromEcho(compl, vrcCoil, 1);
         
@@ -27,7 +20,7 @@ end
 
 methods (Access = private)
     
-    function vrcCoil = phaseMatchingOfChannelsSeperately(self, compl)
+    function vrcCoil = phaseMatchingOfChannelsSeparately(self, compl)
         corrected = compl;
         for iCha = 1:size(compl,4)
             centerPhase = self.getCenterPhase(corrected(:,:,:,iCha));

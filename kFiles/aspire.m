@@ -7,11 +7,7 @@ function aspire(user_data)
     data = checkForWrongOptions(data);
     
     %% MAIN CALCULATION
-    if strcmpi(data.combination_mode, 'mcpc3ds') && strcmpi(data.processing_option, 'slice_by_slice')
-        mcpc3dsSliceBySlice(data);
-    else
-        allPipelines(data);
-    end
+    allPipelines(data);
     
     %% POSTPROCESSING
     if strcmpi(data.processing_option, 'slice_by_slice')
@@ -91,7 +87,7 @@ function allSteps(data, i)
     end    
     
     compl = poCalc.removePo(compl);
-    combined = combineImages(compl, data.weightedCombination);
+    combined = weightedCombination(compl, abs(compl));
 
     % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -124,16 +120,6 @@ function allSteps(data, i)
 end
 
 
-function combined = combineImages(compl, doWeighted)
-    
-    if doWeighted
-        combined = weightedCombination(compl, abs(compl));
-    else
-        combined = sum(compl, 5);
-    end
-end
-
-
 function [ data ] = getDefault(user_data)
 %GETDEFAULT Sets default values, if they are missing
         
@@ -163,7 +149,7 @@ function [ data ] = getDefault(user_data)
 
 end
 
-
+% still required?
 function setupFolder(data)
 %SETUPFOLDERS Setup the folders
 
@@ -175,7 +161,7 @@ function setupFolder(data)
     
 end
 
-
+% deprecated
 function saveStruct(data, slice, subdir, save)
 %SAVESTRUCT saves all images from save to disk
     if ~isempty(save)
@@ -203,7 +189,7 @@ function [ ratio ] = calcRatio(nEchoes, combined, compl, doWeighted)
     end
 end
 
-
+%% move to storage
 function concatImagesInSubdirs(data)
 %searches for sep dirs in subdirs and concatenates images
     disp('concatenating slices with fslmerge');
