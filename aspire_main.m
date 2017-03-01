@@ -185,7 +185,7 @@ for run=18
             data.poCalculator = VrcPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
 %             data.slices = 10:15;
             
-            write_dir = '/home/keckstein/data/test/vrc';
+            write_dir = '/home/keckstein/data/test/vrc4';
 
     end
     
