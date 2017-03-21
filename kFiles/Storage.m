@@ -72,12 +72,12 @@ classdef Storage < handle
         end
         
         function compl = importImages(self)
-            phase = self.filenames.phase;
-            mag = self.filenames.mag;
+            fnPhase = self.filenames.phase;
+            fnMag = self.filenames.mag;
             
-            compl = single(1i * self.getPhase(phase));
+            compl = single(1i * self.getPhase(fnPhase));
             compl = exp(compl);
-            compl = self.getMag(mag) .* compl;
+            compl = self.getMag(fnMag) .* compl;
         end
         
         function mag = getMag(self, filename)

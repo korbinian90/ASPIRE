@@ -176,16 +176,16 @@ for run=18
             data.mcpc3d_echoes = [1 3];
         case 18
             data.parallel = 0;
-            read_dir = cspa_dir;
-            readfile_dirs = {'2', '4'};
-%             read_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/p_ke_20170124/nifti';
+%             read_dir = cspa_dir;
+            readfile_dirs = {'57', '59'};
+            read_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/nifti_and_ima/p_ke_20170213_bipolarGradient/nifti';
 %             readfile_dirs = {'15', '17'};
             data.processing_option = 'all_at_once'; % all_at_once, slice_by_slice
 %             data.combination_mode = 'aspire';
-            data.poCalculator = VrcPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
+            data.poCalculator = AspireBipolarPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
 %             data.slices = 10:15;
             
-            write_dir = '/home/keckstein/data/test/vrc4';
+            write_dir = '/home/keckstein/data/test/aspireBipolar';
 
     end
     
