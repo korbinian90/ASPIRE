@@ -1,6 +1,6 @@
 function make_aspire_package
 
-zip_type='tar'; %'tar.gz'/'zip';
+zip_type='zip'; %'tar.gz'/'zip';
     %   tar preserves directory structure, zip option maybe easier for
     %   Windows users? 
 

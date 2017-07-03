@@ -182,10 +182,11 @@ for run=18
 %             readfile_dirs = {'15', '17'};
             data.processing_option = 'all_at_once'; % all_at_once, slice_by_slice
 %             data.combination_mode = 'aspire';
-            data.poCalculator = AspireBipolarPoCalculator; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
+            data.poCalculator = AspireBipolarPoCalculator2; % AspirePoCalculator, AspireBipolarPoCalculator, Mcpc3dsPoCalculator, Mcpc3d1PoCalculator, VrcPoCalculator
 %             data.slices = 10:15;
             
-            write_dir = '/home/keckstein/data/test/aspireBipolar';
+            write_dir = '/home/keckstein/data/test/aspireBipolar2Inv';
+            
 
     end
     

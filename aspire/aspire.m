@@ -96,7 +96,7 @@ function allSteps(data, i)
     
     %% unwrap combined phase
     combined_phase = angle(combined);
-    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, abs(combined));
+    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, abs(combined(:,:,:,1)));
     
     %% ratio
     ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
@@ -105,7 +105,7 @@ function allSteps(data, i)
     storage.setSubdir('results');
     storage.write(combined_phase, 'combined_phase');
     storage.write(abs(combined), 'combined_mag');
-    if isempty(strcmp(data.unwrapping_method, 'none'))
+    if ~strcmp(data.unwrapping_method, 'none')
         storage.write(unwrapped, 'unwrapped');
     end
     if data.save_steps

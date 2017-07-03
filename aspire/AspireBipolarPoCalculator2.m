@@ -1,4 +1,5 @@
-classdef AspireBipolarPoCalculator < AspirePoCalculator
+%% USES ECHOES 1, 2, 3
+classdef AspireBipolarPoCalculator2 < AspirePoCalculator
     
 properties
     po2
@@ -8,16 +9,22 @@ methods
     % override
     function calculatePo(self, compl)
         a12 = self.calculateAspirePo(compl, [1 2]);
-        a24 = self.calculateAspirePo(compl, [2 4]);
+        a23 = self.calculateAspirePo(compl, [2 3], 2);
         self.storage.write(a12, 'a12');
-        self.storage.write(a24, 'a24');
+        self.storage.write(a23, 'a23');
         a12 = self.normalize(a12);
-        a24 = self.normalize(a24);
+        a23 = self.normalize(a23);
         
-        readoutGradient2 = self.getReadoutGradient2(a24 .* conj(a12));
+        self.storage.write(a23 .* conj(a12), '8grad');
+        readoutGradient2 = self.getReadoutGradientDivBy(a23 .* conj(a12), 4);
+        readoutGradient = self.getReadoutGradientDivBy(a23 .* conj(a12), 8);
+        self.storage.write(readoutGradient, 'readoutGradient');
         
-        self.po = a24 .* conj(readoutGradient2);
-        self.po2 = a24;
+        % TODO: faster, if gradient is scalar with function to add it
+        
+        self.po = a12 .* readoutGradient2; % this is good
+%         self.po = a24 .* conj(readoutGradient2); % this makes ripples
+        self.po2 = self.po .* readoutGradient2;
         self.storage.write(self.po, 'po');
         self.storage.write(self.po2, 'po2');
     end
@@ -44,10 +51,12 @@ methods
     function normalizePo(self)
         self.po = self.normalize(self.po);
         self.po2 = self.normalize(self.po2);
+        self.storage.write(self.po, 'poSmooth');
+        self.storage.write(self.po2, 'po2Smooth');
     end
 
     
-    function readoutGradient = getReadoutGradient2(self, gradient4)
+    function readoutGradient = getReadoutGradientDivBy(self, gradient4, div)
         self.storage.write(gradient4, 'gradient4');
 
         sizeArr = size(gradient4);
@@ -56,10 +65,9 @@ methods
         self.storage.write(diffMap, 'diffMap');
 
         diff = sum(diffMap(:));
-        gradient = angle(diff) / 2;
+        gradient = angle(diff) / div;
         
-%         gradient = gradient * ;
-        
+
         readoutDim = 1;
         rMin = -sizeArr(readoutDim)/2;
         rValues = rMin:(rMin + sizeArr(readoutDim) - 1);
