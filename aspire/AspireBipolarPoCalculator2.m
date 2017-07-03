@@ -1,5 +1,5 @@
-%% USES ECHOES 1, 2, 3
 classdef AspireBipolarPoCalculator2 < AspirePoCalculator
+%% USES ECHOES 1, 2, 3
     
 properties
     po2
@@ -39,8 +39,6 @@ methods
             end
         end
     end
-    
-    % TODO: perform smooth and normalize inside?
     
     % override
     function smoothPo(self)
@@ -82,4 +80,3 @@ methods
 end
     
 end
-

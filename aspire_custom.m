@@ -16,12 +16,12 @@ data.write_dir = 'testWriteDir';
 data.weightedCombination = 1; % magnitude weighted combination of complex images after phase correction
 
 data.parallel = 4; % number of workers; 0 = off
-data.poCalculator = AspirePoCalculator;
+data.poCalculator = AspirePoCalculator; % BipolarAspirePoCalculator2
 data.processing_option = 'slice_by_slice'; % all_at_once, slice_by_slice (slice_by_slice requires fslmerge)
 
 % data.aspire_echoes = [2 4]; % if the echoes [1 2] (= default) are not used
 % data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
-%data.unwrapping_method = 'umpire'; % cusack, umpire, mod (umpire variant)
+% data.unwrapping_method = 'umpire'; % cusack, umpire, mod (umpire variant)
 
 data.save_steps = 0; % write processing steps
 data.write_channels = [1 2]; % channels for which processing steps are written
@@ -31,13 +31,13 @@ data.write_channels = [1 2]; % channels for which processing steps are written
 % data.n_echoes = 8;
 % data.n_channels = 16;
 % data.dim = [128 128 5]; % [x y z]
-% data.nii_dim = [5 128 128 5 8 16 1 1]; % [nDims x y z echo cha 1 1]
+% % data.nii_dim = [5 128 128 5 8 16 1 1]; % [nDims x y z echo cha 1 1]
 % data.nii_dim = [5 data.dim data.n_echoes data.n_channels 1 1]
 % data.nii_pixdim = [0 1.5625 1.5625 6 1 1 1 1]; % [0 xSize ySize zSize 1 1 1 1]
 % data.TEs = [5 10];
 
-% run ASPIRE
+%% run ASPIRE
 tic;
 aspire(data);
-disp(['Whole calculation takes: ' secs2hms(toc)]);
+disp(['Whole calculation took: ' secs2hms(toc)]);
 disp(['Files written to: ' write_dir]);

@@ -1,6 +1,4 @@
 classdef Storage < handle
-    %WRITER Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties (Access = private)
         superDir

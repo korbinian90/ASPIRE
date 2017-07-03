@@ -1,6 +1,6 @@
-%% USES ECHOES 1, 2, 4
 classdef AspireBipolarPoCalculator < AspirePoCalculator
-    
+%% USES ECHOES 1, 2, 4
+
 properties
     po2
 end
@@ -75,4 +75,3 @@ methods
 end
     
 end
-

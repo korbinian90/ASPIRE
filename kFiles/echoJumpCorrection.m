@@ -27,4 +27,3 @@ function [ unwrapped ] = echoJumpCorrection( unwrapped, unwrappedHip, TEs)
     unwrapped(:,:,:,2) = unwrapped(:,:,:,2) - (n2pi2 * 2 * pi);
     
 end
-
