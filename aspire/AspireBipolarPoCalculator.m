@@ -13,13 +13,12 @@ methods
         
         readoutGradient2 = self.getReadoutGradientDivBy(diff12 .* conj(diff23), 2, size(compl, 5));
         
-        a12 = self.calculateAspirePo(compl);
-        
-        self.po = a12 .* readoutGradient2;
+        self.po = self.calculateAspirePo(compl) .* readoutGradient2;
         self.po2 = self.po .* readoutGradient2;
         self.storage.write(self.po, 'po');
         self.storage.write(self.po2, 'po2');
     end
+    
     % override
     function compl = removePo(self, compl)
         nEchoes = size(compl,4);
@@ -32,13 +31,12 @@ methods
         end
     end
     
-    % TODO: perform smooth and normalize inside?
-    
     % override
     function smoothPo(self)
         self.po = self.smooth(self.po, self.sigmaInVoxel);
         self.po2 = self.smooth(self.po2, self.sigmaInVoxel);
     end
+    
     % override
     function normalizePo(self)
         self.po = self.normalize(self.po);
@@ -46,7 +44,7 @@ methods
         self.storage.write(self.po, 'poSmooth');
         self.storage.write(self.po2, 'po2Smooth');
     end
-
+    
     
     function readoutGradient = getReadoutGradientDivBy(self, gradient4, div, nChannels)
         self.storage.write(gradient4, 'gradient4');
