@@ -21,6 +21,10 @@ end
 
 methods (Static)
     function po = calculateAspirePo(compl, aspireEchoes, m)
+        if nargin == 1
+            aspireEchoes = [1 2];
+        end
+        
         hip = calculateHip(compl, aspireEchoes);
         
         if nargin == 3
