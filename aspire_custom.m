@@ -16,7 +16,7 @@ data.write_dir = 'testWriteDir';
 data.weightedCombination = 1; % magnitude weighted combination of complex images after phase correction
 
 data.parallel = 4; % number of workers; 0 = off
-data.poCalculator = AspirePoCalculator; % BipolarAspirePoCalculator2
+data.poCalculator = AspirePoCalculator; % AspireBipolarPoCalculator for bipolar acquisitions (at least 3 echoes)
 data.processing_option = 'slice_by_slice'; % all_at_once, slice_by_slice (slice_by_slice requires fslmerge)
 
 % data.aspire_echoes = [2 4]; % if the echoes [1 2] (= default) are not used
