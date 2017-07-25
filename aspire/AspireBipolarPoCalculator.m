@@ -8,21 +8,17 @@ end
 methods
     % override
     function calculatePo(self, compl)
-        a12 = self.calculateAspirePo(compl, [1 2]);
-        a24 = self.calculateAspirePo(compl, [2 4]);
-        self.storage.write(a12, 'a12');
-        self.storage.write(a24, 'a24');
-        a12 = self.normalize(a12);
-        a24 = self.normalize(a24);
+        diff12 = calculateHip(compl);
+        diff23 = calculateHip(compl, [2 3]);
         
-        readoutGradient2 = self.getReadoutGradient2(a24 .* conj(a12));
+        readoutGradient2 = self.getReadoutGradientDivBy(diff12 .* conj(diff23), 2, size(compl, 5));
         
-        self.po = a12 .* readoutGradient2; % this is good
-%         self.po = a24 .* conj(readoutGradient2); % this makes ripples
-        self.po2 = a24;
+        self.po = self.calculateAspirePo(compl) .* readoutGradient2;
+        self.po2 = self.po .* readoutGradient2;
         self.storage.write(self.po, 'po');
         self.storage.write(self.po2, 'po2');
     end
+    
     % override
     function compl = removePo(self, compl)
         nEchoes = size(compl,4);
@@ -35,21 +31,22 @@ methods
         end
     end
     
-    % TODO: perform smooth and normalize inside?
-    
     % override
     function smoothPo(self)
         self.po = self.smooth(self.po, self.sigmaInVoxel);
         self.po2 = self.smooth(self.po2, self.sigmaInVoxel);
     end
+    
     % override
     function normalizePo(self)
         self.po = self.normalize(self.po);
         self.po2 = self.normalize(self.po2);
+        self.storage.write(self.po, 'poSmooth');
+        self.storage.write(self.po2, 'po2Smooth');
     end
-
     
-    function readoutGradient = getReadoutGradient2(self, gradient4)
+    
+    function readoutGradient = getReadoutGradientDivBy(self, gradient4, div, nChannels)
         self.storage.write(gradient4, 'gradient4');
 
         sizeArr = size(gradient4);
@@ -58,7 +55,7 @@ methods
         self.storage.write(diffMap, 'diffMap');
 
         diff = sum(diffMap(:));
-        gradient = angle(diff) / 2;
+        gradient = angle(diff) / div;
         
 
         readoutDim = 1;
@@ -71,6 +68,8 @@ methods
         readoutGradient = reshape(readoutGradient, sizeArr);
         readoutGradient = exp(1i * readoutGradient);
         self.storage.write(readoutGradient, 'readoutGradient');
+        
+        readoutGradient = repmat(readoutGradient, [1 1 1 nChannels]);
     end
 end
     
