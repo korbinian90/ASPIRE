@@ -4,6 +4,8 @@
 %
 %   current_version_number = 1.5
 
+aspire_startup
+
 %% DATA
 data.read_dir = 'testFileDir';
 data.filename_mag = fullfile(data.read_dir, 'mag/Image.nii');
@@ -15,7 +17,7 @@ data.write_dir = 'testWriteDir';
 %% OPTIONS
 data.weightedCombination = 1; % magnitude weighted combination of complex images after phase correction
 
-data.parallel = 4; % number of workers; 0 = off
+data.parallel = 0; % number of workers; 0 = off
 data.poCalculator = AspirePoCalculator; % AspireBipolarPoCalculator for bipolar acquisitions (at least 3 echoes)
 data.processing_option = 'slice_by_slice'; % all_at_once, slice_by_slice (slice_by_slice requires fslmerge)
 
@@ -40,4 +42,4 @@ data.write_channels = [1 2]; % channels for which processing steps are written
 tic;
 aspire(data);
 disp(['Whole calculation took: ' secs2hms(toc)]);
-disp(['Files written to: ' write_dir]);
+disp(['Files written to: ' data.write_dir]);
