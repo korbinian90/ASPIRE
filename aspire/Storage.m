@@ -9,6 +9,7 @@ classdef Storage < handle
         pixdim
         channels
         filenames
+        echoes
     end
     
     methods
@@ -22,6 +23,10 @@ classdef Storage < handle
             obj.channels = data.channels;
             obj.filenames.mag = data.filename_mag;
             obj.filenames.phase = data.filename_phase;
+            obj.echoes = [];
+            if isfield(data, 'echoes')
+                obj.echoes = data.echoes;
+            end
         end
         
         function write(self, image, name, channels)
@@ -93,9 +98,9 @@ classdef Storage < handle
         
         function image = getImage(self, filename)
             if self.slicewise
-                nii = load_nii_slice(filename, self.slice, [], self.channels);
+                nii = load_nii_slice(filename, self.slice, self.echoes, self.channels);
             else
-                nii = load_nii(filename, [], self.channels);
+                nii = load_nii(filename, self.echoes, self.channels);
             end
             image = single(nii.img);
         end

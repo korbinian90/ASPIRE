@@ -1,5 +1,5 @@
 function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_image, sigma, varargin )
-%WEIGHTEDGAUSSIANSMOOTH Smoothes each slice with gaussian blur
+%WEIGHTEDGAUSSIANSMOOTH Smoothes the volume with gaussian blur
 %   Approximation of gaussian smoothing with 3 times box filtering
 %   The execution time is independent on kernel size
 %   NaN values are treated as missing values (0-weighted)
