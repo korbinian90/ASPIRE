@@ -31,16 +31,8 @@ function data = checkForWrongOptions(data)
         data.processing_option = 'all_at_once';
     end
     
-    % umpire ddTE ~= 0
-    if (strcmpi(data.combination_mode, 'umpire') || strcmpi(data.combination_mode, 'cusp3'))
-        TEs = data.TEs;
-        if (TEs(2) - TEs(1) == TEs(3) - TEs(2))
-            error('umpire based combination is not possible with these echo times');
-        end
-    end
-    
     % warning for aspire if TE2 ~= 2*TE1
-    if (strcmpi(data.combination_mode, 'aspire'))
+    if (data.poCalculator == AspirePoCalculator)
         TEs = data.TEs;
         echoes = data.aspire_echoes;
         if (TEs(echoes(2)) ~= 2 * TEs(echoes(1)))

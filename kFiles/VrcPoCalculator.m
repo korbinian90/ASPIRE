@@ -15,12 +15,7 @@ end
 
 methods (Access = private)
     
-    function range = getRange(self, length)
-        mid = length / 2;
-        width2 = length / self.fovReductionFactor / 2;
-        range = round(mid - width2):round(mid + width2);
-    end
-    
+
     function vrcCoil = getVrcCoil(self, compl)
         centerPhases = self.getCenterPhase(compl);
         corrected = compl;
@@ -30,17 +25,19 @@ methods (Access = private)
         vrcCoil = weightedCombination(corrected, abs(corrected));
     end
     
+    
     function centerPhase = getCenterPhase(self, compl)
         xRange = self.getRange(size(compl, 1));
         yRange = self.getRange(size(compl, 2));
         zRange = self.getRange(size(compl, 3));
         smallFov = compl(xRange, yRange, zRange, :);
         
-%         centerPhase = self.getCenterPhaseHammond(smallFov);
-        centerPhase = self.getCenterPhaseSeparate(smallFov);
+        centerPhase = self.getCenterPhaseHammond(smallFov);
+%         centerPhase = self.getCenterPhaseSeparate(smallFov);
         
         centerPhase = centerPhase ./ abs(centerPhase);
     end
+    
     
     function centerPhase = getCenterPhaseSeparate(self, smallFov)
         nCha = size(smallFov, 4);
@@ -50,11 +47,20 @@ methods (Access = private)
         end
     end
     
+    
     function centerPhase = getPhaseOfMax(~, compl)
         mag = abs(compl);
         [~,index] = max(mag(:));
         centerPhase = compl(index);
     end
+    
+    
+    function range = getRange(self, length)
+        mid = length / 2;
+        width2 = length / self.fovReductionFactor / 2;
+        range = round(mid - width2):round(mid + width2);
+    end
+    
     
     %% old hammond phase matching
     function centerPhase = getCenterPhaseHammond(~, smallFov)

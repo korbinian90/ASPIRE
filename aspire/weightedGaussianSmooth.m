@@ -6,6 +6,10 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
     % number of box filterings
     n_box = 3;
 
+    if sum(input_image == Inf) ~= 0
+        warning('There are Inf values in input data!');
+    end
+    
     k_size = sigma;
     dimension = size(input_image);
     if isempty(varargin) || isempty(varargin{1})
@@ -14,6 +18,10 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
         weighting_image = double(abs(varargin{1}));
         % to avoid singularities
         weighting_image(weighting_image <= 0) = min(weighting_image(weighting_image > 0));
+        
+        if sum(weighting_image == Inf) ~= 0
+            warning('There are Inf values in weighting data!');
+        end
     end
     if size(weighting_image) ~= dimension
        error('weight and image must have same dimensions!');
