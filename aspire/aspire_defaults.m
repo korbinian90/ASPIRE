@@ -18,3 +18,4 @@ data.weighted_smoothing = 1;
 data.channels = []; % all channels are used
 data.smoothingKernelSizeInMM = 5;
 data.weightedCombination = 1;
+data.smooth3d = 0;

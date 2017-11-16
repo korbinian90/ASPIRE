@@ -78,7 +78,7 @@ function allSteps(data, i)
     poCalc = data.poCalculator;
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
-    poCalc.smoothPo();
+    poCalc.smoothPo(abs(compl(:,:,:,1)));
     poCalc.normalizePo();
     
     % TIMING END GETRPO

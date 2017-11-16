@@ -1,7 +1,7 @@
 classdef VrcPoCalculator < PoCalculator
     
 properties (Constant)
-    fovReductionFactor = 4
+    fovReductionFactor = 5
 end
 
 methods
@@ -17,12 +17,17 @@ methods (Access = private)
     
 
     function vrcCoil = getVrcCoil(self, compl)
+        centered = self.phaseMatchingOfChannels(compl);
+        vrcCoil = weightedCombination(centered, abs(centered));
+    end
+    
+    
+    function centered = phaseMatchingOfChannels(self, compl)
         centerPhases = self.getCenterPhase(compl);
-        corrected = compl;
+        centered = compl;
         for iCha = 1:size(compl,4)
-            corrected(:,:,:,iCha) = corrected(:,:,:,iCha) * conj(centerPhases(iCha));
+            centered(:,:,:,iCha) = compl(:,:,:,iCha) * conj(centerPhases(iCha));
         end
-        vrcCoil = weightedCombination(corrected, abs(corrected));
     end
     
     
@@ -34,17 +39,9 @@ methods (Access = private)
         
         centerPhase = self.getCenterPhaseHammond(smallFov);
 %         centerPhase = self.getCenterPhaseSeparate(smallFov);
+%         centerPhase = self.getCenterManual(compl);
         
         centerPhase = centerPhase ./ abs(centerPhase);
-    end
-    
-    
-    function centerPhase = getCenterPhaseSeparate(self, smallFov)
-        nCha = size(smallFov, 4);
-        centerPhase = zeros(1, nCha);
-        for iCha = 1:nCha
-            centerPhase(iCha) = self.getPhaseOfMax(smallFov(:,:,:,iCha));
-        end
     end
     
     
@@ -64,11 +61,27 @@ methods (Access = private)
     
     %% old hammond phase matching
     function centerPhase = getCenterPhaseHammond(~, smallFov)
-        magProduct = prod(double(abs(smallFov)), 4);
-        [~,index] = max(magProduct(:));
+        magSum = sum(double(abs(smallFov)), 4);
+        [~,index] = max(magSum(:));
         [x, y, z] = ind2sub(size(smallFov), index);
         centerPhase = smallFov(x,y,z,:);
     end
+    
+    %% not working sep phase matching    
+    function centerPhase = getCenterPhaseSeparate(self, smallFov)
+        nCha = size(smallFov, 4);
+        centerPhase = zeros(1, nCha);
+        for iCha = 1:nCha
+            centerPhase(iCha) = self.getPhaseOfMax(smallFov(:,:,:,iCha));
+        end
+    end
+    
+    %% manual
+    function centerPhase = getCenterManual(~, compl)
+        COI = [195 220 48]
+        centerPhase = compl(COI(1), COI(2), COI(3), :);
+    end
+    
 end
     
 end
