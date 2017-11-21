@@ -5,6 +5,7 @@ properties
     sigmaInVoxel
     storage
     smooth3d
+    weightedSmoothing
 end
 
 methods (Abstract)
@@ -15,6 +16,7 @@ methods
     function setup(self, data)
         self.sigmaInVoxel = data.smoothingKernelSizeInVoxel;
         self.smooth3d = data.smooth3d;
+        self.weightedSmoothing = data.weighted_smoothing;
         self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
     end
@@ -42,6 +44,9 @@ methods
     end
 
     function po = smooth(self, po, sigmaInVoxel, weight)
+        if ~self.weightedSmoothing
+            weight = [];
+        end
         nChannels = size(po,4);
         for iCha = 1:nChannels
             if self.smooth3d

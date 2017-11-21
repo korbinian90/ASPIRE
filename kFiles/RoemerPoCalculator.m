@@ -23,7 +23,7 @@ methods
     function calculatePo(self, ~)
         realSens = self.storage.getImage(self.inDir(self.filenames.coregSensReal));
         imagSens = self.storage.getImage(self.inDir(self.filenames.coregSensImag));
-        self.po = angle(complex(realSens, imagSens));
+        self.po = complex(realSens, imagSens);
     end
 end
 

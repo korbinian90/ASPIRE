@@ -6,7 +6,11 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
 
     % number of box filterings
     n_box = 3;
-
+    
+    if ~all(isfinite(input_image(:)))
+        warning('There are Inf/NaN values in input data!');
+    end
+    
     radius = sigma;
     dimension = size(input_image);
     if isempty(varargin)
@@ -16,13 +20,16 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
         weighting_image(isnan(weighting_image)) = 0;
         % to avoid singularities
         weighting_image(weighting_image <= 0) = min(weighting_image(weighting_image > 0));
+        if ~all(isfinite(weighting_image(:)))
+            warning('There are Inf values in weighting data!');
+        end
+        if size(weighting_image) ~= dimension
+            error('weight and image must have same dimensions!');
+        end
     end
-    if size(weighting_image) ~= dimension
-       error('weight and image must have same dimensions!');
-    end
-    % set NaN values to 0 and the weighting for those values to 0
-    weighting_image(isnan(input_image)) = 0;
-    input_image(isnan(input_image)) = 0;
+    % set NaN/Inf values to 0 and the weighting for those values to 0
+    weighting_image(~isfinite(input_image)) = 0;
+    input_image(~isfinite(input_image)) = 0;
 
     smoothed_image = input_image;
     smoothed_weight = weighting_image;
