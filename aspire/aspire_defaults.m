@@ -19,3 +19,4 @@ data.smoothingKernelSizeInMM = 5;
 data.weighted_smoothing = 0;
 data.weightedCombination = 1;
 data.smooth3d = 0;
+data.smoother = GaussianBoxSmoother;

@@ -2,10 +2,8 @@ classdef (Abstract) PoCalculator < handle
    
 properties
     po
-    sigmaInVoxel
+    smoother
     storage
-    smooth3d
-    weightedSmoothing
 end
 
 methods (Abstract)
@@ -14,11 +12,10 @@ end
 
 methods
     function setup(self, data)
-        self.sigmaInVoxel = data.smoothingKernelSizeInVoxel;
-        self.smooth3d = data.smooth3d;
-        self.weightedSmoothing = data.weighted_smoothing;
         self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
+        self.smoother = data.smoother;
+        self.smoother.setup(data.smoothingKernelSizeInVoxel, data.weighted_smoothing, data.smooth3d);
     end
     
     function preprocess(~)
@@ -36,32 +33,23 @@ methods
     end
 
     function smoothPo(self, weight)
-        self.po = self.smooth(self.po, self.sigmaInVoxel, weight);
+        self.po = self.smoother.smooth(self.po, weight);
     end
 
-    function normalizePo(self)
-        self.po = self.normalize(self.po);
-    end
-
-    function po = smooth(self, po, sigmaInVoxel, weight)
-        if ~self.weightedSmoothing
-            weight = [];
-        end
-        nChannels = size(po,4);
-        for iCha = 1:nChannels
-            if self.smooth3d
-                po(:,:,:,iCha) = weightedGaussianSmooth3D(po(:,:,:,iCha), sigmaInVoxel, weight);
-            else
-                po(:,:,:,iCha) = weightedGaussianSmooth(po(:,:,:,iCha), sigmaInVoxel, weight);
-            end
-        end
+    function removeMagPo(self)
+        self.po = self.removeMag(self.po);
     end
 end
 
 methods (Static)
     
-    function po = normalize(po)
+    function po = removeMag(po)
         po = po ./ abs(po);
+    end
+    
+    function compl = normalize(compl)
+        compl = compl ./ sqrt(abs(compl));
+        compl(~isfinite(compl)) = 0;
     end
     
     function po = subtractFromEcho(compl, hip, echo)

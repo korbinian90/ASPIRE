@@ -8,10 +8,10 @@ end
 methods
     % override
     function calculatePo(self, compl)
-        diff12 = calculateHip(compl);
-        diff23 = calculateHip(compl, [2 3]);
+        diff12 = self.normalize(calculateHip(compl));
+        diff23 = self.normalize(calculateHip(compl, [2 3]));
         
-        readoutGradient2 = self.getReadoutGradientDivBy(diff12 .* conj(diff23), 2, size(compl, 5));
+        readoutGradient2 = self.getReadoutGradientDivBy(self.normalize(diff12 .* conj(diff23)), 2, size(compl, 5));
         
         self.po = self.calculateAspirePo(compl) .* readoutGradient2;
         self.po2 = self.po .* readoutGradient2;
@@ -32,15 +32,15 @@ methods
     end
     
     % override
-    function smoothPo(self)
-        self.po = self.smooth(self.po, self.sigmaInVoxel);
-        self.po2 = self.smooth(self.po2, self.sigmaInVoxel);
+    function smoothPo(self, weight)
+        self.po = self.smoother.smooth(self.po, weight);
+        self.po2 = self.smoother.smooth(self.po2, weight);
     end
     
     % override
-    function normalizePo(self)
-        self.po = self.normalize(self.po);
-        self.po2 = self.normalize(self.po2);
+    function removeMagPo(self)
+        self.po = self.removeMag(self.po);
+        self.po2 = self.removeMag(self.po2);
         self.storage.write(self.po, 'poSmooth');
         self.storage.write(self.po2, 'po2Smooth');
     end
@@ -50,13 +50,12 @@ methods
         self.storage.write(gradient4, 'gradient4');
 
         sizeArr = size(gradient4);
-        
-        diffMap = gradient4(2:end,:,:,:) .* conj(gradient4(1:(end-1),:,:,:));
+        shift = 10;
+        diffMap = self.normalize(gradient4((1+shift):end,:,:,:) .* conj(gradient4(1:(end-shift),:,:,:)));
         self.storage.write(diffMap, 'diffMap');
 
         diff = sum(diffMap(:));
-        gradient = angle(diff) / div;
-        
+        gradient = angle(diff) / div / shift;
 
         readoutDim = 1;
         rMin = -sizeArr(readoutDim)/2;

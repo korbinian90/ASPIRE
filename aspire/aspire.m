@@ -79,7 +79,7 @@ function allSteps(data, i)
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
     poCalc.smoothPo(abs(compl(:,:,:,1)));
-    poCalc.normalizePo();
+    poCalc.removeMagPo();
     
     % TIMING END GETRPO
     if strcmpi(data.processing_option, 'all_at_once')
