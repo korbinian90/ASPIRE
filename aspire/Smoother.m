@@ -9,7 +9,7 @@ classdef Smoother < handle
     end
     
     methods (Abstract)
-        smoothed = smoothImplementation(self, input, weight);
+        smoothed = smoothImplementation(self, input, weight, factor);
     end
     
     methods
@@ -19,10 +19,15 @@ classdef Smoother < handle
             self.smooth3d = smooth3d;
         end
         
-        function smoothed = smooth(self, smoothed, weight)
+        function smoothed = smooth(self, smoothed, weight, varargin)
+            factor = 1;
+            if nargin == 4
+                factor = varargin{1};
+            end
+            
             nChannels = size(smoothed, 4);
             for iCha = 1:nChannels
-                    smoothed(:,:,:,iCha) = self.smoothImplementation(smoothed(:,:,:,iCha), weight);
+                    smoothed(:,:,:,iCha) = self.smoothImplementation(smoothed(:,:,:,iCha), weight, factor);
             end
         end
     end

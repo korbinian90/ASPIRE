@@ -7,20 +7,22 @@ classdef SmoothN < Smoother
     
     methods
         % implement
-        function smoothed = smoothImplementation(self, input, weight)
+        function smoothed = smoothImplementation(self, input, weight, factor)
+            s = self.sigmaInVoxel * factor;
+            
             if self.smooth3d
                 if self.weightedSmoothing
-                    smoothed = smoothn(input, weight, self.sigmaInVoxel);
+                    smoothed = smoothn(input, weight, s);
                 else
-                    smoothed = smoothn(input, self.sigmaInVoxel);
+                    smoothed = smoothn(input, s);
                 end
             else    
                 smoothed = input;
                 for iSlice = 1:size(input, 3)    
                     if self.weightedSmoothing
-                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), weight, self.sigmaInVoxel);                   
+                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), weight, s);                   
                     else
-                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), self.sigmaInVoxel);                   
+                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), s);                   
                     end
                 end
             end

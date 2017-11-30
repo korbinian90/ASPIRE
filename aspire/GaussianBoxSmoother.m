@@ -7,14 +7,16 @@ classdef GaussianBoxSmoother < Smoother
     
     methods
         % implement
-        function smoothed = smoothImplementation(self, input, weight)
+        function smoothed = smoothImplementation(self, input, weight, factor)
             if ~self.weightedSmoothing
                 weight = [];
             end
+            sigma = self.sigmaInVoxel * factor;
+            
             if self.smooth3d
-                smoothed = weightedGaussianSmooth3d(input, self.sigmaInVoxel, weight);
+                smoothed = weightedGaussianSmooth3d(input, sigma, weight);
             else
-                smoothed = weightedGaussianSmooth(input, self.sigmaInVoxel, weight);
+                smoothed = weightedGaussianSmooth(input, sigma, weight);
             end
                
         end
