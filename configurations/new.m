@@ -11,7 +11,7 @@ p_dir = fullfile(net_app, '/19860116CSPA_201710191700/nifti/');
 % p_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/KE_sorting_spot/prismaUnc/17.11.22-142934-STD-1.3.12.2.1107.5.2.43.67088/nifti/';
 output_dir = '/home/keckstein/data/';
 
-study_dir = 'fdm/test/correctedGradientSmoothn';
+study_dir = 'fdm/test/bipConstructor';
 id_read_dir = p_dir;
 id_readfile_dirs_aspire = {'5', '7'};
 
@@ -52,11 +52,11 @@ for co = combinations
         data.parallel = 12;
 %         data.echoes = 2:2:8
         data.processing_option = 'slice_by_slice';
-        data.poCalculator = AspireBipolarPoCalculator;
-        data.slices = 21:32;
+        data.poCalculator = AspireBipolarPoCalculator('non-linear correction');
+        data.slices = 29:32;
 %         data.weightedSmoothing = 1;
-        data.smoother = SmoothN;
-        data.smoothingKernelSizeInMM = 200
+%         data.smoother = SmoothN;
+%         data.smoothingKernelSizeInMM = 200
     elseif strcmpi(co{1}, 'roemer')
         readfile_dirs = id_readfile_dirs_aspire;
         data.roemer_fn.vcMag = fullfile(data.read_dir, id_readfile_dirs_vc{1}, 'Image.nii');
@@ -75,8 +75,7 @@ for co = combinations
 
     data.filename_mag = fullfile(data.read_dir, readfile_dirs{1}, 'reform', 'Image.nii');
     data.filename_phase = fullfile(data.read_dir, readfile_dirs{2}, 'reform', 'Image.nii');
-    data.filename_magTextHeader = fullfile(data.read_dir, readfile_dirs{1}, 'text_header.txt');
-    data.filename_phaseTextHeader = fullfile(data.read_dir, readfile_dirs{2}, 'text_header.txt');
+    data.filename_textHeader = fullfile(data.read_dir, readfile_dirs{1}, 'text_header.txt');
     tic;
     aspire(data);
     disp(['Whole calculation takes: ' secs2hms(toc)]);

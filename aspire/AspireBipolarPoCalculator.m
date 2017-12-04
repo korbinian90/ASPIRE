@@ -3,9 +3,18 @@ classdef AspireBipolarPoCalculator < AspirePoCalculator
 
 properties
     po2
+    doNonLinearCorrection
 end
 
 methods
+    function obj = AspireBipolarPoCalculator(varargin)
+        if nargin == 1 && strcmp(varargin{1}, 'non-linear correction')
+            obj.doNonLinearCorrection = 1;
+        else
+            obj.doNonLinearCorrection = 0;
+        end 
+    end
+    
     % override
     function calculatePo(self, compl)
         diff12 = self.normalize(calculateHip(compl));
@@ -68,13 +77,15 @@ methods
         readoutGradient = exp(1i * readoutGradient);
         self.storage.write(readoutGradient, 'readoutGradient');
         
-        readoutGradient = self.smoothCorrection(readoutGradient, gradient4);
+        if self.doNonLinearCorrection
+            readoutGradient = self.nonLinearCorrection(readoutGradient, gradient4);
+        end
         
         readoutGradient = repmat(readoutGradient, [1 1 1 nChannels]);
     end
     
     
-    function readoutGradient = smoothCorrection(self, readoutGradient, gradient4)
+    function readoutGradient = nonLinearCorrection(self, readoutGradient, gradient4)
         residual = gradient4 .* conj(readoutGradient) .* conj(readoutGradient);
         self.storage.write(residual, 'residual');
         
