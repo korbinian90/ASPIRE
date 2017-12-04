@@ -6,7 +6,7 @@ function [ data ] = getHeaderInfo( data )
     phaseData = fromNiiHeader(data.filename_phase);
     
     if ~isequal(magData, phaseData)
-        error('Magnitude and phase have different Header info!');
+        warning('Magnitude and phase have different Header info!');
     end
     
     % Output variables
