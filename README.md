@@ -7,7 +7,8 @@ Clone repository with git or download as ZIP file.
 
 # Configuration
 Set the data location and parameters in aspire_custom.m
-Uncombined magnitude and phase as NII file is required.
+Uncombined magnitude and phase as NIFTI file is required.
+The dimensions have to be [x, y, z, echo, channel].
 
 # Run ASPIRE
 Start aspire_custom.m
