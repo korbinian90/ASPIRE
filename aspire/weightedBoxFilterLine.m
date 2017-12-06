@@ -1,4 +1,4 @@
-function [ output_line, output_weight ] = weightedBoxFilterLine(line, radius, varargin)
+function [ output_line, output_weight ] = weightedBoxFilterLine(line, boxSize, varargin)
 %WEIGHTEDBOXFILTERLINE Weighted Box Smoothing along second dimension
 %   Detailed explanation goes here
 
@@ -6,7 +6,7 @@ function [ output_line, output_weight ] = weightedBoxFilterLine(line, radius, va
     % strictly positive (ensured in calling function
     % weightedGaussianSmooth)
 
-    radius = round(radius);
+    radius = floor(boxSize / 2);
     dimension = size(line);
     if isempty(varargin)
         weights = ones(dimension);

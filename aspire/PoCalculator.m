@@ -15,7 +15,7 @@ methods
         self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
         self.smoother = data.smoother;
-        self.smoother.setup(data.smoothingKernelSizeInVoxel, data.weighted_smoothing, data.smooth3d);
+        self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d);
     end
     
     function preprocess(~)

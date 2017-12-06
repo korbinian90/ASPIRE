@@ -10,7 +10,6 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
         warning('There are Inf/NaN values in input data!');
     end
     
-    k_size = sigma;
     dimension = size(input_image);
     if isempty(varargin) || isempty(varargin{1})
         weighting_image = ones(dimension);
@@ -39,13 +38,14 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
         slice_loop = 1;
     end
     
+    boxSizes = getBoxSizes(sigma, n_box);
     for slice = 1:slice_loop
         % box filter with 6 times transposing image -> 3 times horizontal and 3
         % times vertical filtered
         s_image = double(smoothed_image(:,:,slice));
         s_weight = double(smoothed_weight(:,:,slice));
         for i = 1:2*n_box
-            [s_image, s_weight] = weightedBoxFilterLine(s_image', k_size, s_weight');
+            [s_image, s_weight] = weightedBoxFilterLine(s_image', boxSizes(floor((i + 1) / 2)), s_weight');
         end
         smoothed_image(:,:,slice) = single(s_image);
         smoothed_weight(:,:,slice) = single(s_weight);

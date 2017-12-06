@@ -142,8 +142,7 @@ function [ data ] = getDefault(user_data)
         end
     end
     
-    % calculate smoothingKernelSize in pixel
-    data.smoothingKernelSizeInVoxel = data.smoothingKernelSizeInMM / data.nii_pixdim(2);
+    data.smoothingSigmaSizeInVoxel = data.smoothingSigmaSizeInMM / data.nii_pixdim(2);
     
     data.parallel = min(feature('numCores'), data.parallel);
 

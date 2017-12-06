@@ -11,7 +11,6 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
         warning('There are Inf/NaN values in input data!');
     end
     
-    radius = sigma;
     dimension = size(input_image);
     if isempty(varargin)
         weighting_image = ones(dimension);
@@ -40,6 +39,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
         vol_loop = 1;
     end
     
+    boxSizes = getBoxSizes(sigma, n_box);
     parfor vol = 1:vol_loop
         % box filter with 3*n_box runs
         s_image = double(smoothed_image(:,:,:,vol));
@@ -49,7 +49,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
             s_image = permute(s_image, [2 3 1]);
             s_weight = permute(s_weight, [2 3 1]);
             dim = [dim(2) dim(3) dim(1)];
-            [s_image, s_weight] = weightedBoxFilterLine(s_image(:,:), radius, s_weight(:,:));
+            [s_image, s_weight] = weightedBoxFilterLine(s_image(:,:), boxSizes(floor((i + 1) / 2)), s_weight(:,:));
             s_image = reshape(s_image, dim);
             s_weight = reshape(s_weight, dim);
         end
