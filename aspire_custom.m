@@ -10,19 +10,14 @@ aspire_startup
 data.read_dir = 'testFileDir';
 data.filename_mag = fullfile(data.read_dir, 'mag/Image.nii');
 data.filename_phase = fullfile(data.read_dir, 'phase/Image.nii');
-data.filename_textHeader = fullfile(data.read_dir, 'phase/text_header.txt');
 data.write_dir = 'testWriteDir';
-
-%% use ASPIRE without text_header files
-% data.noHeader = 1;
-% data.TEs = [5 10];
 
 %% OPTIONS
 data.poCalculator = AspirePoCalculator; % AspireBipolarPoCalculator('non-linear correction') for bipolar acquisitions (at least 3 echoes)
 data.parallel = 0; % number of workers for parallel processing; 0 = off
 data.processing_option = 'slice_by_slice'; % all_at_once, slice_by_slice (slice_by_slice requires fslmerge)
 
-% data.aspire_echoes = [2 4]; % if the echoes [1 2] (= default) are not used
+% data.aspire_echoes = [2 4]; % if other echoes than [1 2] (= default) are used for ASPIRE calculation
 % data.slices = 5:6; % limit the range to these slices (only in slice_by_slice mode)
 % data.unwrapping_method = 'umpire'; % cusack, umpire, mod (umpire variant)
 
