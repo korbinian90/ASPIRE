@@ -18,9 +18,9 @@ classdef SmoothN < Smoother
                 end
             else    
                 smoothed = input;
-                for iSlice = 1:size(input, 3)    
+                for iSlice = 1:size(input, 3)
                     if self.weightedSmoothing
-                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), weight, s);                   
+                        smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), weight(:,:,iSlice), s);                   
                     else
                         smoothed(:,:,iSlice) = smoothn(input(:,:,iSlice), s);                   
                     end

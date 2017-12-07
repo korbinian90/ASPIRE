@@ -16,7 +16,7 @@ function [ data ] = getHeaderInfo( data )
     data.dim = magData.dim;
     data.nii_pixdim = magData.nii_pixdim;
     
-    if ~isfield(data, 'noHeader')
+    if isfield(data, 'filename_textHeader')
         data.TEs = fromTextHeader(data.filename_textHeader, data.n_echoes);
     end
     
