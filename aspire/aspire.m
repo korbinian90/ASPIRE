@@ -78,7 +78,8 @@ function allSteps(data, i)
     poCalc = data.poCalculator;
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
-    poCalc.smoothPo(abs(compl(:,:,:,1)));
+    poCalc.smoothPo(abs(compl(:,:,:,1,:)));
+    poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
     poCalc.removeMagPo();
     
     % TIMING END GETRPO
@@ -87,7 +88,7 @@ function allSteps(data, i)
     end    
     
     compl = poCalc.removePo(compl);
-    combined = weightedCombination(compl, abs(compl));
+    combined = weightedCombinationAspire(compl, abs(compl));
 
     % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -145,6 +146,8 @@ function [ data ] = getDefault(user_data)
     data.smoothingSigmaSizeInVoxel = data.smoothingSigmaSizeInMM / data.nii_pixdim(2);
     
     data.parallel = min(feature('numCores'), data.parallel);
+    
+    data.write_channels = data.write_channels(data.write_channels <= data.n_channels);
 
 end
 

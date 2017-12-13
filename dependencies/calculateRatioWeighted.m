@@ -1,6 +1,6 @@
 function ratio = calculateRatioWeighted(combinedMagnitude, magnitude, sensitivity)
     
-    weightedMagnitudeSum = weightedCombination(magnitude, sensitivity);
+    weightedMagnitudeSum = weightedCombinationAspire(magnitude, sensitivity);
     ratio = combinedMagnitude ./ weightedMagnitudeSum;
     
 end

@@ -18,7 +18,7 @@ methods (Access = private)
 
     function vrcCoil = getVrcCoil(self, compl)
         centered = self.phaseMatchingOfChannels(compl);
-        vrcCoil = weightedCombination(centered, abs(centered));
+        vrcCoil = weightedCombinationAspire(centered, abs(centered));
     end
     
     

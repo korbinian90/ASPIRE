@@ -18,6 +18,9 @@ methods
         self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d);
     end
     
+    function iterativeCorrection(~, ~)
+    end
+    
     function preprocess(~)
     end
     

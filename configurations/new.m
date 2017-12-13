@@ -11,9 +11,9 @@ p_dir = fullfile(net_app, '/19860116CSPA_201710191700/nifti/');
 % p_dir = '/net/mri.meduniwien.ac.at/projects/radiology/acqdata/data/KE_sorting_spot/prismaUnc/17.11.22-142934-STD-1.3.12.2.1107.5.2.43.67088/nifti/';
 output_dir = '/home/keckstein/data/';
 
-study_dir = 'fdm/test/bipConstructor';
+study_dir = 'fdm/test/parameterEstimation/';
 id_read_dir = p_dir;
-id_readfile_dirs_aspire = {'5', '7'};
+id_readfile_dirs_aspire = {'31', '32'};
 
 combinations = {'aspireBipolar'};
 
@@ -49,14 +49,15 @@ for co = combinations
 %         data.aspire_echoes = [2 4];
     elseif strcmpi(co{1}, 'aspireBipolar')
         readfile_dirs = id_readfile_dirs_aspire;
-        data.parallel = 12;
+        data.parallel = 0;
 %         data.echoes = 2:2:8
         data.processing_option = 'slice_by_slice';
         data.poCalculator = AspireBipolarPoCalculator('non-linear correction');
-        data.slices = 29:32;
+        data.slices = 30:31;
 %         data.weightedSmoothing = 1;
-%         data.smoother = SmoothN;
-%         data.smoothingKernelSizeInMM = 200
+        data.smoother = GaussianBoxSmoother;
+        data.iterativeSteps = 10;
+%         data.smoothingSigmaSizeInMM = 500
     elseif strcmpi(co{1}, 'roemer')
         readfile_dirs = id_readfile_dirs_aspire;
         data.roemer_fn.vcMag = fullfile(data.read_dir, id_readfile_dirs_vc{1}, 'Image.nii');

@@ -54,6 +54,13 @@ methods
         self.storage.write(self.po2, 'po2Smooth');
     end
     
+    % override
+    function addToPo(self, term)
+        for iCha = 1:size(self.po, 4)
+            self.po(:,:,:,iCha) = self.po(:,:,:,iCha) .* term;
+            self.po2(:,:,:,iCha) = self.po2(:,:,:,iCha) .* term;
+        end
+    end
     
     function readoutGradient = getReadoutGradientDivBy(self, gradient4, div, nChannels)
         self.storage.write(gradient4, 'gradient4');

@@ -23,7 +23,7 @@ poCalc.smoothPo();
 poCalc.normalizePo();
 compl = poCalc.removePo(compl);
 
-combined = weightedCombination(compl, abs(compl));
+combined = weightedCombinationAspire(compl, abs(compl));
 
 ratio =  calculateRatioWeighted(abs(combined), mag, mag);
 
