@@ -1,0 +1,261 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>polyfitweighted2.m and polyval2.m</title>
+      <meta name="generator" content="MATLAB 7.0.1">
+      <meta name="date" content="2006-12-28">
+      <meta name="m-file" content="publishpolyfitweighted2"><style>
+body {
+  background-color: white;
+  margin:10px;
+}
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+pre.codeinput {
+  margin-left: 30px;
+}
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.showbuttons {
+  margin-left: 30px;
+  border: solid black 2px;
+  padding: 4px;
+  background: #EBEFF3;
+}
+
+pre.codeoutput {
+  color: gray;
+  font-style: italic;
+}
+pre.error {
+  color: red;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+    </style></head>
+   <body>
+      <h1>polyfitweighted2.m and polyval2.m</h1>
+      <introduction>
+         <p><b>polyfitweighted2.m</b>: Find a least-squares fit of 2D data <tt>z(x,y)</tt> with an <tt>n</tt> th order polynomial, weighted by <tt>w(x,y)</tt> .
+         </p>
+         <p><b>polyval2.m</b>: Evaluate 2D polynomial produced by polyfitweighted2.m.
+         </p>
+         <p>By S.S. Rogers (2006)</p>
+      </introduction>
+      <h2>Contents</h2>
+      <div>
+         <ul>
+            <li><a href="#1">Usage polyfitweighted2</a></li>
+            <li><a href="#2">Usage polyval2</a></li>
+            <li><a href="#3">Example</a></li>
+         </ul>
+      </div>
+      <h2>Usage polyfitweighted2<a name="1"></a></h2>
+      <p><tt>P = polyfitweighted2(X,Y,Z,N,W)</tt> finds the coefficients of a polynomial <tt>P(X,Y)</tt> of degree <tt>N</tt> that fits the data <tt>Z</tt> best in a least-squares sense. <tt>P</tt> is a row vector of length <tt>(N+1)*(N+2)/2</tt> containing the polynomial coefficients in ascending powers, 0th order first.
+      </p><pre> P = [p00 p10 p01 p20 p11 p02 p30 p21 p12 p03...]</pre><p>e.g. For a 3rd order fit, the regression problem is formulated in matrix format as:</p><pre> wZ = V*P    or</pre><pre>                    2       2   3   2     2      3
+ wZ = [w  wx  wy  wx  xy  wy  wx  wx y  wx y   wy ]  [p00
+                                                      p10
+                                                      p01
+                                                      p20
+                                                      p11
+                                                      p02
+                                                      p30
+                                                      p21
+                                                      p12
+                                                      p03]</pre><p><tt>X,Y</tt> must be vectors <tt>Z,W</tt> must be 2D arrays of size <tt>[length(X) length(Y)]</tt></p>
+      <p>based on polyfit.m by The Mathworks Inc. - see <tt>doc polyfit</tt> for more details
+      </p>
+      <p>Class support for inputs <tt>X,Y,Z,W</tt>:      float: double, single
+      </p>
+      <p><b>Note:</b> <tt>P</tt> is not in the format of standard Matlab 1D polynomials. Use <tt>polval2.m</tt> to evaluate the polynomial in this format, at given values of <tt>x,y</tt>.
+      </p>
+      <h2>Usage polyval2<a name="2"></a></h2>
+      <p><tt>Z = POLYVAL2(P,X,Y)</tt> returns the value of a 2D polynomial <tt>P</tt> evaluated at <tt>(X,Y)</tt>. <tt>P</tt> is a vector of length <tt>(N+1)*(N+2)/2</tt> containing the polynomial coefficients in ascending powers:
+      </p><pre> P = [p00 p10 p01 p20 p11 p02 p30 p21 p12 p03...]</pre><p>e.g. For a 3rd order fit, polyval2.m evaluates the matrix equation:</p><pre>  Z = V*P    or</pre><pre>                 2      2  3  2      2   3
+  Z = [1  x  y  x  xy  y  x  x y  x y   y ]  [p00
+                                              p10
+                                              p01
+                                              p20
+                                              p11
+                                              p02
+                                              p30
+                                              p21
+                                              p12
+                                              p03]</pre><p><b>Note:</b> <tt>P</tt> is not in the format of standard Matlab 1D polynomials.
+      </p>
+      <p><tt>X</tt> and <tt>Y</tt> should be vectors; the polynomial is evaluated at all points <tt>(X,Y)</tt>.
+      </p>
+      <p>Class support for inputs <tt>P,X,Y</tt>:    float: double, single
+      </p>
+      <h2>Example<a name="3"></a></h2>
+      <p>Define some data z: Calculate best fit cubic with various weights:</p>
+      <p>- equal weight on all data points</p>
+      <p>- weight by the data itself</p>
+      <p>use polyval2.m to evaluate and plot best fit polynomial in each case. See help polyval2.m</p><pre class="codeinput">x=[-50:50]';
+y=[-50:50];
+z=exp(-(x.^2*y.^0/100+x*y/140+x.^0*y.^2/50));
+
+P_equalweight=polyfitweighted2(x,y,z,4,ones(101));
+P_weighted=polyfitweighted2(x,y,z,4,z);
+
+
+figure
+subplot(2,2,1)
+contour(x,y,z,[0:0.02:1])
+title(<span class="string">'data'</span>)
+subplot(2,2,2)
+contour(x,y,polyval2(P_equalweight,x,y),[0:0.02:1])
+title(<span class="string">'equal weight'</span>)
+subplot(2,2,3)
+contour(x,y,polyval2(P_weighted,x,y),[0:0.02:1])
+title(<span class="string">'weighted by z'</span>)
+</pre><img vspace="5" hspace="5" src="publishpolyfitweighted2_01.png"> <p class="footer"><br>
+         Published with MATLAB&reg; <br></p>
+      <!--
+##### SOURCE BEGIN #####
+%% polyfitweighted2.m and polyval2.m
+%
+% *polyfitweighted2.m*: Find a least-squares fit of 2D data |z(x,y)| 
+% with an |n| th order polynomial, weighted by |w(x,y)| .
+%
+% *polyval2.m*: Evaluate 2D polynomial produced by polyfitweighted2.m.
+%
+% By S.S. Rogers (2006)
+%
+%% Usage polyfitweighted2
+% |P = polyfitweighted2(X,Y,Z,N,W)| finds the coefficients of a polynomial 
+% |P(X,Y)| of degree |N| that fits the data |Z| best in a least-squares 
+% sense. |P| is a row vector of length |(N+1)*(N+2)/2| containing the 
+% polynomial coefficients in ascending powers, 0th order first.
+%
+%   P = [p00 p10 p01 p20 p11 p02 p30 p21 p12 p03...]
+%
+% e.g. For a 3rd order fit, 
+% the regression problem is formulated in matrix format as:
+%
+%   wZ = V*P    or
+%
+%                      2       2   3   2     2      3
+%   wZ = [w  wx  wy  wx  xy  wy  wx  wx y  wx y   wy ]  [p00
+%                                                        p10
+%                                                        p01
+%                                                        p20
+%                                                        p11
+%                                                        p02
+%                                                        p30
+%                                                        p21
+%                                                        p12
+%                                                        p03]
+%
+% |X,Y| must be vectors
+% |Z,W| must be 2D arrays of size |[length(X) length(Y)]|
+%
+% based on polyfit.m by The Mathworks Inc. - see |doc polyfit| for more details
+%
+% Class support for inputs |X,Y,Z,W|:
+%      float: double, single
+%
+% *Note:* |P| is not in the format of standard Matlab 1D polynomials. Use
+% |polval2.m| to evaluate the polynomial in this format, at given values of
+% |x,y|.
+%
+%% Usage polyval2
+% |Z = POLYVAL2(P,X,Y)| returns the value of a 2D polynomial |P| evaluated at
+% |(X,Y)|. |P|
+% is a vector of length |(N+1)*(N+2)/2| containing the polynomial coefficients in
+% ascending powers:
+%
+%   P = [p00 p10 p01 p20 p11 p02 p30 p21 p12 p03...]
+%
+% e.g. For a 3rd order fit, polyval2.m evaluates the matrix equation:
+%
+%    Z = V*P    or
+%
+%                   2      2  3  2      2   3
+%    Z = [1  x  y  x  xy  y  x  x y  x y   y ]  [p00
+%                                                p10
+%                                                p01
+%                                                p20
+%                                                p11
+%                                                p02
+%                                                p30
+%                                                p21
+%                                                p12
+%                                                p03]
+%
+% *Note:* |P| is not in the format of standard Matlab 1D polynomials.
+%
+% |X| and |Y| should be vectors; the polynomial is evaluated at all
+% points |(X,Y)|.
+%
+% Class support for inputs |P,X,Y|:
+%    float: double, single
+%
+%% Example
+% Define some data z:
+% Calculate best fit cubic with various weights:
+%
+% - equal weight on all data points
+%
+% - weight by the data itself
+%
+% use polyval2.m to evaluate and plot best fit polynomial in each case.
+% See help polyval2.m
+
+x=[-50:50]';
+y=[-50:50];
+z=exp(-(x.^2*y.^0/100+x*y/140+x.^0*y.^2/50));
+
+P_equalweight=polyfitweighted2(x,y,z,4,ones(101));
+P_weighted=polyfitweighted2(x,y,z,4,z);
+
+
+figure
+subplot(2,2,1)
+contour(x,y,z,[0:0.02:1])
+title('data')
+subplot(2,2,2)
+contour(x,y,polyval2(P_equalweight,x,y),[0:0.02:1])
+title('equal weight')
+subplot(2,2,3)
+contour(x,y,polyval2(P_weighted,x,y),[0:0.02:1])
+title('weighted by z')
+
+##### SOURCE END #####
+-->
+   </body>
+</html>
