@@ -111,7 +111,7 @@ function allSteps(data, i)
     end
     if data.save_steps
         storage.setSubdir('steps');
-        storage.write(poCalc.po, 'po', data.write_channels);
+        storage.write(poCalc.po, 'po', data.write_channels_po);
         storage.write(compl, 'no_rpo', data.write_channels);
         storage.write(abs(compl), 'mag', data.write_channels);
         storage.write(ratio, 'ratio');

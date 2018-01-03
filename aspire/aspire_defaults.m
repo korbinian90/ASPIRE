@@ -14,6 +14,11 @@ data.unwrapping_method = 'none';
 data.parallel = 0;
 data.wrap_estimator_range = [-2 3];
 data.write_channels = 1:4;
+if ~isfield(user_data, 'write_channels')
+    data.write_channels_po = user_data.write_channels;
+else
+    data.write_channels_po = data.write_channels;
+end
 data.channels = []; % all channels are used
 data.smoothingSigmaSizeInMM = 5;
 data.weighted_smoothing = 0;
