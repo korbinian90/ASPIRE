@@ -86,7 +86,7 @@ classdef FlexibleStorage < handle
         function mag = getMag(self, filename)
             mag = self.getImage(filename);
             % avoid 0 values in mag (and nagative)
-            minMag = min(mag(:) > 0);
+            minMag = min(mag(mag > 0));
             mag(mag <= 0) = minMag;
         end
         
@@ -102,6 +102,7 @@ classdef FlexibleStorage < handle
                 nii = load_nii(filename, self.echoes, self.channels);
             end
             image = single(nii.img);
+            image(~isfinite(image)) = 0;
         end
         
         function image = getImageInPath(self, filename)

@@ -14,7 +14,7 @@ data.unwrapping_method = 'none';
 data.parallel = 0;
 data.wrap_estimator_range = [-2 3];
 data.write_channels = 1:4;
-if ~isfield(user_data, 'write_channels')
+if isfield(user_data, 'write_channels')
     data.write_channels_po = user_data.write_channels;
 else
     data.write_channels_po = data.write_channels;
@@ -26,3 +26,4 @@ data.weightedCombination = 1;
 data.smooth3d = 0;
 data.smoother = GaussianBoxSmoother;
 data.iterativeSteps = 0;
+data.swi = 0;

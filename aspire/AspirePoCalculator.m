@@ -29,6 +29,8 @@ methods
         residual(~isfinite(residual)) = 0;
         poTerm = ones(size(residual));
         
+        self.storage.write(compl(:,:,:,:,1), 'compl');
+        self.storage.write(abs(compl(:,:,:,:,1)), 'abscompl');
         self.storage.write(residual, 'residualNaN');
         self.storage.write(angle(combined), 'combined');
         self.storage.write(phaseDiff, 'phaseDiff');

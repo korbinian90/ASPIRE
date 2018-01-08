@@ -47,7 +47,7 @@ end
 methods (Static)
     
     function po = removeMag(po)
-        po = po ./ abs(po);
+        po = exp(1i * angle(po));
     end
     
     function compl = normalize(compl)

@@ -31,6 +31,10 @@ function allPipelines(data)
     poCalc.setup(data);
     poCalc.preprocess();
     
+    if isfield(data, 'swiCalculator')
+        data.swiCalculator.setup(data);
+    end
+    
     % CALCULATION
     if data.parallel && strcmpi(data.processing_option, 'slice_by_slice')
         % do parallelized (only works when slice_by_slice)
@@ -80,6 +84,7 @@ function allSteps(data, i)
     poCalc.calculatePo(compl);
     poCalc.smoothPo(abs(compl(:,:,:,1,:)));
     poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
+    storage.write(abs(poCalc.po), 'sens', data.write_channels_po);
     poCalc.removeMagPo();
     
     % TIMING END GETRPO
@@ -101,6 +106,15 @@ function allSteps(data, i)
     
     %% ratio
     ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
+    
+    %% SWI
+    if isfield(data, 'swiCalculator')
+        swiCalculator = data.swiCalculator;
+        swiCalculator.setSlice(iSlice);
+        swi = swiCalculator.calculate(combined);
+        storage.setSubdir('results');
+        storage.write(swi, 'swi');
+    end
     
     %% save to disk
     storage.setSubdir('results');
@@ -143,7 +157,7 @@ function [ data ] = getDefault(user_data)
         end
     end
     
-    data.smoothingSigmaSizeInVoxel = data.smoothingSigmaSizeInMM / data.nii_pixdim(2);
+    data.smoothingSigmaSizeInVoxel = mmToVoxel(data.smoothingSigmaSizeInMM, data.nii_pixdim);
     
     data.parallel = min(feature('numCores'), data.parallel);
     
