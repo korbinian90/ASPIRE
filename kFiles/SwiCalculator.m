@@ -44,17 +44,20 @@ classdef SwiCalculator < handle
         
         function combined = combineEchoes(self, echoes)
             TEs = self.echoTimes;
+            dim = size(echoes);
+            repDim = [dim(1:3) 1];
+            reshapeDim = [1 1 1 length(TEs)];
+            echoes = echoes ./ repmat(reshape(TEs, reshapeDim), repDim);
             T2star = 30; % approx value for 7T
             weight = TEs .* exp(-TEs / T2star) / sum(TEs .* exp(-TEs / T2star));
-            dim = size(echoes);
-            combined = sum(repmat(reshape(weight, [1 1 1 length(TEs)]), [dim(1:3) 1]) .* echoes, 4);
+            combined = sum(repmat(reshape(weight, reshapeDim), repDim) .* echoes, 4);
         end
         
         function swi = calculateSwi(self, compl)
             phase = angle(compl);
             phase(phase >= 0) = 1;
             phase(phase < 0) = ((phase(phase < 0) + pi) / pi) .^ self.power;
-            swi = abs(compl) * phase;
+            swi = abs(compl) .* phase;
         end
     end
     
