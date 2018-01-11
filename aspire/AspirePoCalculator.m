@@ -24,7 +24,7 @@ methods
     function iterativeCorrection(self, compl)
         if self.iterativeSteps
             compl = self.removePo(compl);
-            combined = weightedCombinationAspire(compl, abs(compl));
+            combined = weightedCombinationAspire(compl, abs(self.po));
             phaseDiff = combined(:,:,:,2) .* conj(combined(:,:,:,1));
             residual = combined(:,:,:,1) .* (conj(phaseDiff) ./ abs(phaseDiff));
             residual(~isfinite(residual)) = 0;

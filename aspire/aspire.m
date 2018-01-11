@@ -82,18 +82,20 @@ function allSteps(data, i)
     poCalc = data.poCalculator;
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
+    poCalc.setSens(compl);
     poCalc.smoothPo(abs(compl(:,:,:,1,:)));
-    poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
+%     poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
     storage.write(abs(poCalc.po), 'sens', data.write_channels_po);
-    poCalc.removeMagPo();
     
     % TIMING END GETRPO
     if strcmpi(data.processing_option, 'all_at_once')
        disp(['Time for getRpo: ' secs2hms(toc-time)]);
     end    
-    
+
+    poCalc.removeLowSens();
+    storage.write(abs(poCalc.po), 'lowSens', data.write_channels_po);
     compl = poCalc.removePo(compl);
-    combined = weightedCombinationAspire(compl, abs(compl));
+    combined = weightedCombinationAspire(compl, poCalc.getSens());
 
     % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')

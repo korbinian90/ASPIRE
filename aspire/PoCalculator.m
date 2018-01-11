@@ -28,6 +28,19 @@ methods
         self.storage.setSlice(slice);
     end
     
+    function removeLowSens(self)
+        pSum = sum(abs(self.po), 4);
+        remove = pSum < 0.1 * max(pSum(:));
+        remove = repmat(remove, [1 1 1 size(self.po, 4)]);
+        self.po(remove) = 0;
+        
+        for iCha = 1:size(self.po, 4)
+            p = self.po(:,:,:,iCha);
+            p(abs(p) < 0.1 * max(abs(p(:)))) = 0; 
+            self.po(:,:,:,iCha) = p;
+        end
+    end
+    
     function compl = removePo(self, compl)
         nEchoes = size(compl,4);
         for eco = 1:nEchoes
@@ -39,6 +52,15 @@ methods
         self.po = self.smoother.smooth(self.po, weight);
     end
 
+    function setSens(self, compl)
+        self.po = self.removeMag(self.po) .* abs(compl(:,:,:,1,:));
+    end
+    
+    function sens = getSens(self)
+        sens = abs(self.po);
+    end
+    
+    % deprecated
     function removeMagPo(self)
         self.po = self.removeMag(self.po);
     end

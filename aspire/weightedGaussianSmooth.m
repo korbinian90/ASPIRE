@@ -44,6 +44,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth( input_ima
         % times vertical filtered
         s_image = double(smoothed_image(:,:,slice));
         s_weight = double(smoothed_weight(:,:,slice));
+        s_image = edgeFill(s_image, s_image, max(boxSizes));
         for i = 1:2*n_box
             [s_image, s_weight] = weightedBoxFilterLine(s_image', boxSizes(floor((i + 1) / 2)), s_weight');
         end

@@ -4,6 +4,44 @@ classdef AspireSensCalculator < AspirePoCalculator
     
     properties
     end
+    
+    methods
+       % override
+       function setSens(~, ~)
+       end
+               
+        % override
+        function iterativeCorrection(self, compl)
+            if self.iterativeSteps
+                compl = self.removePo(compl);
+                combined = weightedCombinationAspire(compl, abs(self.po));
+                phaseDiff = self.calculateCombinedDifference(compl);
+                residual = combined(:,:,:,1) .* (phaseDiff ./ abs(phaseDiff));
+                residual(~isfinite(residual)) = 0;
+
+                self.storage.write(compl(:,:,:,:,1), 'compl');
+                self.storage.write(abs(compl(:,:,:,:,1)), 'abscompl');
+                self.storage.write(residual, 'residualNaN');
+                self.storage.write(angle(combined), 'combined');
+                self.storage.write(phaseDiff, 'phaseDiff');
+                % mag - phase ?? div - diff ??
+                poTerm = zeros(size(residual));
+                for iStep = 1:self.iterativeSteps
+                    residualSmooth = self.smoother.smooth(residual, abs(combined(:,:,:,1)));
+                    poTerm = poTerm + residualSmooth;
+
+                    self.storage.write(residual, ['residual' num2str(iStep)]);
+                    self.storage.write(residualSmooth, ['residualSmooth' num2str(iStep)]);
+                    self.storage.write(poTerm, ['poTerm' num2str(iStep)]);
+
+                    residual = residual - residualSmooth;
+                end
+                for iCha = 1:size(self.po, 4)
+                    self.po(:,:,:,iCha) = self.po(:,:,:,iCha) + residual;
+                end
+            end
+        end
+    end
 
     methods (Static)
         % override
@@ -23,6 +61,7 @@ classdef AspireSensCalculator < AspirePoCalculator
 %             mag(~isfinite(mag)) = 0.1;
 %         end
         
+        % override
         function po = calculateAspirePo(compl, aspireEchoes, m)
             if nargin == 1
                 aspireEchoes = [1 2];
