@@ -20,8 +20,10 @@ B = [1 2 3 4;
      3 4 5 6;
      4 5 6 7];
 
-m = [A A;
-     A B]
-w = [A A;
-     A w]
+m = [A A A;
+     A B A
+     A A A]
+w = [A A A;
+     A w A
+     A A A]
 edgeFill(m, w, 5)
