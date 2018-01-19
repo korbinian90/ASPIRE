@@ -62,7 +62,7 @@ classdef AspireSensCalculator < AspirePoCalculator
 %         end
         
         % override
-        function po = calculateAspirePo(compl, aspireEchoes, m)
+        function po = calculateAspirePo(compl, aspireEchoes, m, storage)
             if nargin == 1
                 aspireEchoes = [1 2];
             end
@@ -78,6 +78,17 @@ classdef AspireSensCalculator < AspirePoCalculator
             for iCha = 1:size(po, 4)
                 po(:,:,:,iCha) = compl(:,:,:,aspireEchoes(1),iCha) .* echoDiff;
             end
+            
+            
+            storage.write(po, 'poBeforeEdgeFill');
+            storage.write(real(po), 'realBeforeEdgeFill');
+            storage.write(abs(po), 'absBeforeEdgeFill');
+%             po = edgeFill(po, floor(2 * sigmaInVoxel));
+%             po = edgeFill(po, floor(2 * sigmaInVoxel));
+%             storage.write(po, 'poEdgeFill');
+%             storage.write(real(po), 'realEdgeFill');
+%             storage.write(abs(po), 'absEdgeFill');
+            
         end
         
         function echoDiff = calculateCombinedDifference(compl)

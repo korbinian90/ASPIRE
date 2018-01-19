@@ -17,7 +17,7 @@ methods
     end
     % override
     function calculatePo(self, compl)
-        self.po = self.calculateAspirePo(compl, self.aspireEchoes);
+        self.po = self.calculateAspirePo(compl, self.aspireEchoes, 1, self.storage);
     end
     
     % override
@@ -58,7 +58,7 @@ methods
 end
 
 methods (Static)
-    function po = calculateAspirePo(compl, aspireEchoes, m)
+    function po = calculateAspirePo(compl, aspireEchoes, m, storage)
         if nargin == 1
             aspireEchoes = [1 2];
         end

@@ -92,7 +92,7 @@ function allSteps(data, i)
        disp(['Time for getRpo: ' secs2hms(toc-time)]);
     end    
 
-    poCalc.removeLowSens();
+%     poCalc.removeLowSens();
     storage.write(abs(poCalc.po), 'lowSens', data.write_channels_po);
     compl = poCalc.removePo(compl);
     combined = weightedCombinationAspire(compl, poCalc.getSens());

@@ -53,7 +53,7 @@ methods
     end
 
     function setSens(self, compl)
-        self.po = self.removeMag(self.po) .* abs(compl(:,:,:,1,:));
+        self.po = self.removeMag(self.po) .* squeeze(abs(compl(:,:,:,1,:)));
     end
     
     function sens = getSens(self)

@@ -20,7 +20,6 @@ classdef GaussianBoxSmoother < Smoother
             end
                
         end
-
     end
     
 end
