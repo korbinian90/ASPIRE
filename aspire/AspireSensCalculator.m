@@ -74,9 +74,9 @@ classdef AspireSensCalculator < AspirePoCalculator
             end
             
             dim = size(compl);
-            po = zeros([dim(1:3) dim(5)]);
-            for iCha = 1:size(po, 4)
-                po(:,:,:,iCha) = compl(:,:,:,aspireEchoes(1),iCha) .* echoDiff;
+            po = zeros([dim(1:3) 1 dim(5)]);
+            for iCha = 1:size(po, 5)
+                po(:,:,:,1,iCha) = compl(:,:,:,aspireEchoes(1),iCha) .* echoDiff;
             end
             
             

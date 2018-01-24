@@ -31,12 +31,12 @@ classdef FlexibleStorage < handle
         function write(self, image, name, channels)
             if self.path
                 % Only save the specified channels
-                if nargin > 3
-                    if ndims(image) == 5
-                        image = image(:,:,:,:,channels);
-                    else
-                        image = image(:,:,:,channels);
-                    end
+                if nargin <= 3
+                    channels = self.channels;
+                end
+                
+                if ndims(image) == 5
+                    image = image(:,:,:,:,channels);
                 end
                 
                 % calc and save only phase if image is complex
@@ -44,12 +44,16 @@ classdef FlexibleStorage < handle
                     image = angle(image);
                 end
                 
-                if ndims(image) == 5
+                if ndims(image) == 5 && size(image, 4) ~= 1
                     for iCha = 1:size(image,5)
                         filePath = fullfile(self.path, [name '_c' num2str(channels(iCha)) '.nii']);
                         self.saveAndCenter(image(:,:,:,:,iCha), filePath);
                     end
                 else
+                    if ndims(image) == 5
+                        sz = size(image);
+                        image = reshape(image, [sz(1:3) sz(5)]);
+                    end
                     filePath = fullfile(self.path, [name '.nii']);
                     self.saveAndCenter(image, filePath);
                 end
@@ -119,7 +123,7 @@ classdef FlexibleStorage < handle
                 fileName = [name '_' num2str(self.slice) ext];
                 path = fullfile(folderPath, fileName);
             end
-            image_nii = make_nii(image, self.pixdim);
+            image_nii = make_nii(single(image), self.pixdim);
             centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
         end
     end

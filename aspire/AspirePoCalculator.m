@@ -24,7 +24,7 @@ methods
     function iterativeCorrection(self, compl)
         if self.iterativeSteps
             compl = self.removePo(compl);
-            combined = weightedCombinationAspire(compl, abs(self.po));
+            combined = MagWeightedCombination.combine(compl);
             phaseDiff = combined(:,:,:,2) .* conj(combined(:,:,:,1));
             residual = combined(:,:,:,1) .* (conj(phaseDiff) ./ abs(phaseDiff));
             residual(~isfinite(residual)) = 0;
@@ -51,8 +51,8 @@ methods
     end
     
     function addToPo(self, term)
-        for iCha = 1:size(self.po, 4)
-            self.po(:,:,:,iCha) = self.po(:,:,:,iCha) .* term;
+        for iCha = 1:size(self.po, 5)
+            self.po(:,:,:,1,iCha) = self.po(:,:,:,1,iCha) .* term;
         end
     end
 end

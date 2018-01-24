@@ -1,4 +1,4 @@
-function smoothed_image = nanGaussianSmooth(input_image, sigma, weight)
+function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
 %NANGAUSSIANSMOOTH Smoothes each slice with gaussian blur
 %   Approximation of gaussian smoothing with 3 times box filtering
 %   The execution time is independent on kernel size
@@ -22,15 +22,12 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, weight)
     if isempty(slice_loop)
         slice_loop = 1;
     end
-    weight = sum(weight, 5);
     boxSizes = getBoxSizes(sigma, n_box);
     for iSlice = 1:slice_loop
-            s_weight = weight(:,:,iSlice,:);
-            mask = s_weight < 0.1 * max(s_weight(:));
-            repMask = repmat(mask, [1 1 size(input_image, 4)]);
+            repMask = repmat(mask(:,:,iSlice), [1 1 size(input_image, 4)]);
             slice_image = squeeze(smoothed_image(:,:,iSlice,:));
             slice_image(repMask) = NaN;
-        for i = 1:4
+        for i = 1:8
             
             slice_image = permute(flipdim(slice_image, 1), [2 1 3]); % rot90
             
@@ -43,13 +40,13 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, weight)
             end
         end
         
-        slice_image(~isfinite(slice_image)) = 100;
-        for i = 5:2*n_box
-            slice_image = permute(slice_image, [2 1 3]);
-            for iCha = 1:size(slice_image, 3)
-                slice_image(:,:,iCha) = single(weightedBoxFilterLine(double(slice_image(:,:,iCha)), boxSizes(floor((i + 1) / 2))));
-            end
-        end
+        slice_image(~isfinite(slice_image)) = 1000;
+%         for i = 5:2*n_box
+%             slice_image = permute(slice_image, [2 1 3]);
+%             for iCha = 1:size(slice_image, 3)
+%                 slice_image(:,:,iCha) = single(weightedBoxFilterLine(double(slice_image(:,:,iCha)), boxSizes(floor((i + 1) / 2))));
+%             end
+%         end
         
         smoothed_image(:,:,iSlice,:) = slice_image;
     end

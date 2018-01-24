@@ -15,7 +15,7 @@ methods
         self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
         self.smoother = data.smoother;
-        self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d);
+        self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d, self.storage);
     end
     
     function iterativeCorrection(~, ~)
@@ -29,22 +29,22 @@ methods
     end
     
     function removeLowSens(self)
-        pSum = sum(abs(self.po), 4);
+        pSum = sum(abs(self.po), 5);
         remove = pSum < 0.1 * max(pSum(:));
-        remove = repmat(remove, [1 1 1 size(self.po, 4)]);
+        remove = repmat(remove, [1 1 1 1 size(self.po, 5)]);
         self.po(remove) = 0;
         
         for iCha = 1:size(self.po, 4)
-            p = self.po(:,:,:,iCha);
+            p = self.po(:,:,:,1,iCha);
             p(abs(p) < 0.1 * max(abs(p(:)))) = 0; 
-            self.po(:,:,:,iCha) = p;
+            self.po(:,:,:,1,iCha) = p;
         end
     end
     
     function compl = removePo(self, compl)
         nEchoes = size(compl,4);
         for eco = 1:nEchoes
-            compl(:,:,:,eco,:) = squeeze(compl(:,:,:,eco,:)) .* squeeze(conj(self.po));
+            compl(:,:,:,eco,:) = compl(:,:,:,eco,:) .* exp(-1i * angle(self.po));
         end
     end
 
@@ -53,13 +53,16 @@ methods
     end
 
     function setSens(self, compl)
-        self.po = self.removeMag(self.po) .* squeeze(abs(compl(:,:,:,1,:)));
+        self.po = self.removeMag(self.po) .* abs(compl(:,:,:,1,:));
     end
     
     function sens = getSens(self)
         sens = abs(self.po);
     end
     
+    function sens = getSensPo(self)
+        sens = self.po;
+    end
     % deprecated
     function removeMagPo(self)
         self.po = self.removeMag(self.po);
@@ -81,10 +84,10 @@ methods (Static)
         nChannels = size(compl, 5);
         size_compl = size(compl);
 
-        po = complex(zeros([size_compl(1:3) nChannels], 'single'));
+        po = complex(zeros([size_compl(1:3) 1 nChannels], 'single'));
         for iCha = 1:nChannels
             po_double = double(compl(:,:,:,echo,iCha)) .* double(conj(hip));
-            po(:,:,:,iCha) = single(po_double);
+            po(:,:,:,1,iCha) = single(po_double);
         end
     end
 end

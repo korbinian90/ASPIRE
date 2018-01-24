@@ -6,6 +6,7 @@ classdef Smoother < handle
         weightedSmoothing
         sigmaInVoxel
         smooth3d
+        storage
     end
     
     methods (Abstract)
@@ -13,10 +14,11 @@ classdef Smoother < handle
     end
     
     methods
-        function setup(self, sigmaInVoxel, weightedSmoothing, smooth3d)
+        function setup(self, sigmaInVoxel, weightedSmoothing, smooth3d, storage)
             self.sigmaInVoxel = sigmaInVoxel;
             self.weightedSmoothing = weightedSmoothing;
             self.smooth3d = smooth3d;
+            self.storage = storage;
         end
         
         function smoothed = smooth(self, smoothed, weight, varargin)
@@ -28,7 +30,7 @@ classdef Smoother < handle
                 factor = varargin{1};
             end
             
-            nChannels = size(smoothed, 4);
+            nChannels = size(smoothed, 5);
             for iCha = 1:nChannels
                     smoothed(:,:,:,iCha) = self.smoothImplementation(smoothed(:,:,:,iCha), weight, factor);
             end

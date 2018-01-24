@@ -27,3 +27,5 @@ data.smooth3d = 0;
 data.smoother = GaussianBoxSmoother;
 data.iterativeSteps = 0;
 data.swi = 0;
+data.swiSmoother = GaussianBoxSmoother;
+data.combination = MagWeightedCombination;

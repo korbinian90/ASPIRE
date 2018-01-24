@@ -70,7 +70,7 @@ function allSteps(data, i)
     compl = storage.importImages();
 
     storage.setSubdir('steps');
-    storage.write(angle(compl), 'orig_phase', data.write_channels); % <- temp for paper
+    storage.write(angle(compl), 'orig_phase'); % <- temp for paper
     
     % TIMING BEGIN COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
@@ -95,7 +95,7 @@ function allSteps(data, i)
 %     poCalc.removeLowSens();
     storage.write(abs(poCalc.po), 'lowSens', data.write_channels_po);
     compl = poCalc.removePo(compl);
-    combined = weightedCombinationAspire(compl, poCalc.getSens());
+    combined = data.combination.combine(compl, poCalc.getSens());
 
     % TIMING END COMBINATION
     if strcmpi(data.processing_option, 'all_at_once')
