@@ -73,6 +73,8 @@ classdef SwiCalculator < handle
         end
         
         function swi = calculateSwi(self, mag, phase)
+            minmaxPhase = minmax(phase);
+            phase = (phase - minmaxPhase(1)) * (2 * pi / (minmaxPhase(2) - minmaxPhase(1))) - pi;
             phase = -20 * phase;
             phase(phase >= 0) = 1;
             phase(phase < 0) = ((phase(phase < 0) + pi) / pi) .^ self.power;
@@ -90,11 +92,12 @@ classdef SwiCalculator < handle
         
         function unwrapped = unwrap(self, compl)
             addpath('/bilbo/home/keckstein/matlab/vSharp');
+            unwrapper = LaplacianUnwrapper;
             mask = abs(compl) > 0.5;
             unwrapped = zeros(size(compl));
             for iEco = 1:size(compl, 4)
                 for iSlice = 1:size(compl, 3)
-                    unwrapped(:,:,iSlice,iEco) = LaplacianUnwrapper.unwrapSlice(angle(compl(:,:,iSlice,iEco)));
+                    unwrapped(:,:,iSlice,iEco) = unwrapper.unwrapSlice(angle(compl(:,:,iSlice,iEco)), mask(:,:,iSlice,iEco));
                 end
             end
         end
