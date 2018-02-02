@@ -83,9 +83,15 @@ function allSteps(data, i)
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
     poCalc.setSens(compl);
+    storage.write(poCalc.po, 'poBeforeSmooth');
+    storage.write(abs(poCalc.po), 'sensBeforeSmooth');
+    storage.write(real(poCalc.po), 'realBeforeSmooth');
+    storage.write(imag(poCalc.po), 'imagBeforeSmooth');
     poCalc.smoothPo(abs(compl(:,:,:,1,:)));
-%     poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
+    poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
     storage.write(abs(poCalc.po), 'sens', data.write_channels_po);
+    storage.write(real(poCalc.po), 'realSens', data.write_channels_po);
+    storage.write(imag(poCalc.po), 'imagSens', data.write_channels_po);
     
     % TIMING END GETRPO
     if strcmpi(data.processing_option, 'all_at_once')

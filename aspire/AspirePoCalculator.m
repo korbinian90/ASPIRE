@@ -36,15 +36,21 @@ methods
             self.storage.write(angle(combined), 'combined');
             self.storage.write(phaseDiff, 'phaseDiff');
 
+            
+            % TODO temp
+%             smoother = GaussianBoxSmoother;
+%             smoother.setup(self.smoother.sigmaInVoxel, 0, 0, self.storage)
+%             self.smoother.sigmaInVoxel
             for iStep = 1:self.iterativeSteps
                 residualSmooth = self.smoother.smooth(residual, abs(combined(:,:,:,1)));
-                poTerm = poTerm .* residualSmooth ./ abs(residualSmooth);
+                residualSmooth = exp(1i * angle(residualSmooth));
+                poTerm = poTerm .* residualSmooth;
 
                 self.storage.write(residual, ['residual' num2str(iStep)]);
                 self.storage.write(residualSmooth, ['residualSmooth' num2str(iStep)]);
                 self.storage.write(poTerm, ['poTerm' num2str(iStep)]);
 
-                residual = residual .* (conj(residualSmooth) ./ abs(residualSmooth));
+                residual = residual .* conj(residualSmooth);
             end
             self.addToPo(poTerm);
         end

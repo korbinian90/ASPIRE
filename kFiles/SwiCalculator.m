@@ -30,7 +30,8 @@ classdef SwiCalculator < handle
         
         function swi = calculate(self, compl)
             unwrapped = self.unwrap(compl);
-            hp = self.highPassFilter(unwrapped);
+            hp = self.highPassFilter(unwrapped, abs(compl));
+%             hp = angle(self.highPassFilterCompl(exp(1i * unwrapped)), abs(compl));
             combinedPhase = self.combineEchoesPhase(hp);
             combinedMag = self.combineEchoes(abs(compl));
             swi = self.calculateSwi(combinedMag, combinedPhase);
@@ -42,14 +43,16 @@ classdef SwiCalculator < handle
         end
         
         % deprecated
-        function hp = highPassFilterCompl(self, compl)
-            lowPassFiltered = self.smoother.smooth(compl);
+        function hp = highPassFilterCompl(self, compl, weight)
+            lowPassFiltered = self.smoother.smooth(compl, weight);
             lowPassFiltered = exp(1i * angle(lowPassFiltered)); % only phase
+            self.storage.write(lowPassFiltered, 'lowPassFiltered');
             hp = compl .* conj(lowPassFiltered); % remove low frequency phase
         end
         
-        function hp = highPassFilter(self, unwrapped)
-            lowPassFiltered = self.smoother.smooth(unwrapped);
+        function hp = highPassFilter(self, unwrapped, weight)
+            lowPassFiltered = self.smoother.smooth(unwrapped, weight);
+            self.storage.write(lowPassFiltered, 'lowPassFiltered');
             hp = unwrapped - lowPassFiltered; % remove low frequency phase
         end
         
@@ -73,11 +76,15 @@ classdef SwiCalculator < handle
         end
         
         function swi = calculateSwi(self, mag, phase)
-            minmaxPhase = minmax(phase);
-            phase = (phase - minmaxPhase(1)) * (2 * pi / (minmaxPhase(2) - minmaxPhase(1))) - pi;
-            phase = -20 * phase;
+%             minmaxPhase = minmax(phase(:)');
+            med = 10 * median(abs(phase(mag > 0.5)));
+            min = -med;
+            max = med;
+            phase = (phase - min) * (2 * pi / (max - min)) - pi;
+%             phase = -20 * phase;
             phase(phase >= 0) = 1;
-            phase(phase < 0) = ((phase(phase < 0) + pi) / pi) .^ self.power;
+            phase(phase < -pi) = -pi;
+            phase(phase < 0) = ((phase(phase < 0) + pi) / pi);% .^ self.power;
             swi = mag .* phase;
             self.storage.write(phase, 'phaseMask');
         end
@@ -97,7 +104,7 @@ classdef SwiCalculator < handle
             unwrapped = zeros(size(compl));
             for iEco = 1:size(compl, 4)
                 for iSlice = 1:size(compl, 3)
-                    unwrapped(:,:,iSlice,iEco) = unwrapper.unwrapSlice(angle(compl(:,:,iSlice,iEco)), mask(:,:,iSlice,iEco));
+                    unwrapped(:,:,iSlice,iEco) = unwrapper.unwrapSlice(angle(compl(:,:,iSlice,iEco)), mask(:,:,iSlice,1));%unwrapVya2D(angle(compl(:,:,iSlice,iEco)));%
                 end
             end
         end

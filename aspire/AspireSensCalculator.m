@@ -10,37 +10,37 @@ classdef AspireSensCalculator < AspirePoCalculator
        function setSens(~, ~)
        end
                
-        % override
-        function iterativeCorrection(self, compl)
-            if self.iterativeSteps
-                compl = self.removePo(compl);
-                combined = weightedCombinationAspire(compl, abs(self.po));
-                phaseDiff = self.calculateCombinedDifference(compl);
-                residual = combined(:,:,:,1) .* (phaseDiff ./ abs(phaseDiff));
-                residual(~isfinite(residual)) = 0;
-
-                self.storage.write(compl(:,:,:,:,1), 'compl');
-                self.storage.write(abs(compl(:,:,:,:,1)), 'abscompl');
-                self.storage.write(residual, 'residualNaN');
-                self.storage.write(angle(combined), 'combined');
-                self.storage.write(phaseDiff, 'phaseDiff');
-                % mag - phase ?? div - diff ??
-                poTerm = zeros(size(residual));
-                for iStep = 1:self.iterativeSteps
-                    residualSmooth = self.smoother.smooth(residual, abs(combined(:,:,:,1)));
-                    poTerm = poTerm + residualSmooth;
-
-                    self.storage.write(residual, ['residual' num2str(iStep)]);
-                    self.storage.write(residualSmooth, ['residualSmooth' num2str(iStep)]);
-                    self.storage.write(poTerm, ['poTerm' num2str(iStep)]);
-
-                    residual = residual - residualSmooth;
-                end
-                for iCha = 1:size(self.po, 4)
-                    self.po(:,:,:,iCha) = self.po(:,:,:,iCha) + residual;
-                end
-            end
-        end
+%         % override
+%         function iterativeCorrection(self, compl)
+%             if self.iterativeSteps
+%                 compl = self.removePo(compl);
+%                 combined = weightedCombinationAspire(compl, abs(self.po));
+%                 phaseDiff = self.calculateCombinedDifference(compl);
+%                 residual = combined(:,:,:,1) .* (phaseDiff ./ abs(phaseDiff));
+%                 residual(~isfinite(residual)) = 0;
+% 
+%                 self.storage.write(compl(:,:,:,:,1), 'compl');
+%                 self.storage.write(abs(compl(:,:,:,:,1)), 'abscompl');
+%                 self.storage.write(residual, 'residualNaN');
+%                 self.storage.write(angle(combined), 'combined');
+%                 self.storage.write(phaseDiff, 'phaseDiff');
+%                 % mag - phase ?? div - diff ??
+%                 poTerm = zeros(size(residual));
+%                 for iStep = 1:self.iterativeSteps
+%                     residualSmooth = self.smoother.smooth(residual, abs(combined(:,:,:,1)));
+%                     poTerm = poTerm + residualSmooth;
+% 
+%                     self.storage.write(residual, ['residual' num2str(iStep)]);
+%                     self.storage.write(residualSmooth, ['residualSmooth' num2str(iStep)]);
+%                     self.storage.write(poTerm, ['poTerm' num2str(iStep)]);
+% 
+%                     residual = residual - residualSmooth;
+%                 end
+%                 for iCha = 1:size(self.po, 4)
+%                     self.po(:,:,:,iCha) = self.po(:,:,:,iCha) + residual;
+%                 end
+%             end
+%         end
     end
 
     methods (Static)
@@ -74,12 +74,12 @@ classdef AspireSensCalculator < AspirePoCalculator
             end
             
             dim = size(compl);
-            po = zeros([dim(1:3) 1 dim(5)]);
+            po = zeros([dim(1:3) 1 size(compl, 5)]);
             for iCha = 1:size(po, 5)
                 po(:,:,:,1,iCha) = compl(:,:,:,aspireEchoes(1),iCha) .* echoDiff;
             end
             
-            
+%             po = abs(compl(:,:,:,1,:)) .* exp(1i * angle(po));
             storage.write(po, 'poBeforeEdgeFill');
             storage.write(real(po), 'realBeforeEdgeFill');
             storage.write(abs(po), 'absBeforeEdgeFill');

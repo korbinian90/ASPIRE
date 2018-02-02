@@ -1,21 +1,22 @@
-A = zeros(5);
-w = ones(5);
-B = [1:5;
-     2:6;
-     3:7;
-     4:8;
-     5:9];
+A = zeros(6);
+w = ones(6);
+B = [1:5 22;
+     2:6 1;
+     3:7 9;
+     4:8 3;
+     5:9 11;
+     6:10 1];
 
 m = [A A A;
      A B A
      A A A]
-
-Z = m(:);
-[X, Y] = meshgrid(1:size(m, 1), 1:size(m, 2));
-sf = fit([X(:), Y(:)], Z, 'poly11', 'Exclude', Z == 0)
-plot(sf, [X(:), Y(:)], Z)
-
-out = reshape(sf(X,Y), size(m))
+edgeFill(m, 3)
+% Z = m(:);
+% [X, Y] = meshgrid(1:size(m, 1), 1:size(m, 2));
+% sf = fit([X(:), Y(:)], Z, 'poly11', 'Exclude', Z == 0)
+% plot(sf, [X(:), Y(:)], Z)
+% 
+% out = reshape(sf(X,Y), size(m))
 
 % image = [0 0 2 3; 0 0 2 3; 0 0 2 3; 0 0 2 3]
 % % edgeFill(image, 3)
