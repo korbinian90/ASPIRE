@@ -1,26 +1,32 @@
 function [ data ] = getHeaderInfo( data )
 %GETHEADERINFO gets important information from nifti header
 %   Detailed explanation goes here
-
-    magData = fromNiiHeader(data.filename_mag);
+    
     phaseData = fromNiiHeader(data.filename_phase);
     
-    if ~isequal(magData, phaseData)
-        warning('Magnitude and phase have different Header info!');
+    if isfield(data, 'filename_mag')
+        magData = fromNiiHeader(data.filename_mag);
+        if ~isequal(phaseData, magData)
+            warning('Magnitude and phase have different Header info!');
+        end
     end
     
     % Output variables
-    data.n_echoes = magData.n_echoes;
-    data.n_channels = magData.n_channels;
-    data.nii_dim = magData.nii_dim;
-    data.dim = magData.dim;
-    data.nii_pixdim = magData.nii_pixdim;
+    data.n_echoes = phaseData.n_echoes;
+    data.n_channels = phaseData.n_channels;
+    if isfield(data, 'singleEcho') && data.singleEcho
+        data.n_channels = data.n_echoes;
+        data.n_echoes = 1;
+    end
+    data.nii_dim = phaseData.nii_dim;
+    data.dim = phaseData.dim;
+    data.nii_pixdim = phaseData.nii_pixdim;
     
     if isfield(data, 'filename_textHeader')
         data.TEs = fromTextHeader(data.filename_textHeader, data.n_echoes);
     end
     
-    fprintf('There are %i echoes and %i channels\n', magData.n_echoes, magData.n_channels);
+    fprintf('There are %i echoes and %i channels\n', phaseData.n_echoes, phaseData.n_channels);
 end
 
 

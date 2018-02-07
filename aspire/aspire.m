@@ -79,16 +79,57 @@ function allSteps(data, i)
     end
     
     %% Main steps
+    if size(compl, 5) > 1 || data.singleChannelCombination
+        combined = combinationSteps(data, iSlice, compl);
+    else
+        combined = compl;
+    end
+
+    % TIMING END COMBINATION
+    if strcmpi(data.processing_option, 'all_at_once')
+       disp(['Time for combination: ' secs2hms(toc-time)]);
+    end    
+    
+    %% unwrap combined phase
+    combined_phase = angle(combined);
+    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, abs(combined(:,:,:,1)));
+    saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
+    
+    %% SWI
+    if isfield(data, 'swiCalculator')
+        swiCalculator = data.swiCalculator;
+        swiCalculator.setSlice(iSlice);
+        swi = swiCalculator.calculate(combined);
+        storage.setSubdir('results');
+        storage.write(swi, 'swi');
+    end
+    
+    %% save results to disk
+    storage.setSubdir('results');
+    storage.write(combined_phase, 'combined_phase');
+    storage.write(abs(combined), 'combined_mag');
+    if ~strcmp(data.unwrapping_method, 'none')
+        storage.write(unwrapped, 'unwrapped');
+    end
+       
+end
+
+function combined = combinationSteps(data, iSlice, compl)
+    storage = data.storage;
+    
     poCalc = data.poCalculator;
     poCalc.setSlice(iSlice);
     poCalc.calculatePo(compl);
     poCalc.setSens(compl);
+    
     storage.write(poCalc.po, 'poBeforeSmooth');
     storage.write(abs(poCalc.po), 'sensBeforeSmooth');
     storage.write(real(poCalc.po), 'realBeforeSmooth');
     storage.write(imag(poCalc.po), 'imagBeforeSmooth');
     poCalc.smoothPo(abs(compl(:,:,:,1,:)));
-    poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
+    if ~data.singleEcho
+        poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
+    end
     storage.write(abs(poCalc.po), 'sens', data.write_channels_po);
     storage.write(real(poCalc.po), 'realSens', data.write_channels_po);
     storage.write(imag(poCalc.po), 'imagSens', data.write_channels_po);
@@ -102,46 +143,15 @@ function allSteps(data, i)
     storage.write(abs(poCalc.po), 'lowSens', data.write_channels_po);
     compl = poCalc.removePo(compl);
     combined = data.combination.combine(compl, poCalc.getSens());
-
-    % TIMING END COMBINATION
-    if strcmpi(data.processing_option, 'all_at_once')
-       disp(['Time for combination: ' secs2hms(toc-time)]);
-    end    
     
-    %% unwrap combined phase
-    combined_phase = angle(combined);
-    [unwrapped, unwrappingSteps] = unwrappingSelector(data, combined_phase, abs(combined(:,:,:,1)));
+    storage.write(poCalc.po, 'po', data.write_channels_po);
+    storage.write(compl, 'no_rpo', data.write_channels);
+    storage.write(abs(compl), 'mag', data.write_channels);
     
     %% ratio
     ratio = calcRatio(data.n_echoes, combined, compl, data.weightedCombination);
-    
-    %% SWI
-    if isfield(data, 'swiCalculator')
-        swiCalculator = data.swiCalculator;
-        swiCalculator.setSlice(iSlice);
-        swi = swiCalculator.calculate(combined);
-        storage.setSubdir('results');
-        storage.write(swi, 'swi');
-    end
-    
-    %% save to disk
-    storage.setSubdir('results');
-    storage.write(combined_phase, 'combined_phase');
-    storage.write(abs(combined), 'combined_mag');
-    if ~strcmp(data.unwrapping_method, 'none')
-        storage.write(unwrapped, 'unwrapped');
-    end
-    if data.save_steps
-        storage.setSubdir('steps');
-        storage.write(poCalc.po, 'po', data.write_channels_po);
-        storage.write(compl, 'no_rpo', data.write_channels);
-        storage.write(abs(compl), 'mag', data.write_channels);
-        storage.write(ratio, 'ratio');
-        saveStruct(data, i, 'unwrappingSteps', unwrappingSteps);   
-    end
-       
+    storage.write(ratio, 'ratio');
 end
-
 
 function [ data ] = getDefault(user_data)
 %GETDEFAULT Sets default values, if they are missing

@@ -48,7 +48,8 @@ methods
         end
     end
 
-    function smoothPo(self, weight)
+    function smoothPo(self, compl)
+        weight = sum(abs(compl), 5);
         self.po = self.smoother.smooth(self.po, weight);
     end
 

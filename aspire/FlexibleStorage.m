@@ -10,6 +10,7 @@ classdef FlexibleStorage < handle
         channels
         filenames
         echoes
+        singleEcho
     end
     
     methods
@@ -24,6 +25,9 @@ classdef FlexibleStorage < handle
                 obj.pixdim = raw_hdr.dime.pixdim(2:4);
                 obj.channels = raw_hdr.dime.dim(6);
                 obj.echoes = raw_hdr.dime.dim(5);
+                if obj.echoes == 1
+                    obj.singleEcho = 1;
+                end
             end
         end
         
@@ -84,7 +88,11 @@ classdef FlexibleStorage < handle
         function compl = getComplex(self, fnMag, fnPhase)
             compl = single(1i * self.getPhase(fnPhase));
             compl = exp(compl);
-            compl = self.getMag(fnMag) .* compl;
+            if ~isempty(fnMag)
+                compl = self.getMag(fnMag) .* compl;
+            else
+                warning('No Magnitude is used');
+            end
         end
         
         function mag = getMag(self, filename)
@@ -100,12 +108,21 @@ classdef FlexibleStorage < handle
         end
         
         function image = getImage(self, filename)
-            if self.slicewise
-                nii = load_nii_slice(filename, self.slice, self.echoes, self.channels);
+            if self.singleEcho
+                if self.slicewise
+                    nii = load_nii_slice(filename, self.slice, self.channels);
+                else
+                    nii = load_nii(filename, self.channels);
+                end
+                image = reshape(nii.img, size(nii.img, 1), size(nii.img, 2), size(nii.img, 3), 1, size(nii.img, 4));
             else
-                nii = load_nii(filename, self.echoes, self.channels);
+                if self.slicewise
+                    nii = load_nii_slice(filename, self.slice, self.echoes, self.channels);
+                else
+                    nii = load_nii(filename, self.echoes, self.channels);
+                end
+                image = single(nii.img);
             end
-            image = single(nii.img);
             image(~isfinite(image)) = 0;
         end
         

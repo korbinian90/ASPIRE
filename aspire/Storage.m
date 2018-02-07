@@ -14,6 +14,7 @@ classdef Storage < FlexibleStorage
             end
             obj.filenames.mag = data.filename_mag;
             obj.filenames.phase = data.filename_phase;
+            obj.singleEcho = data.singleEcho;
             obj.echoes = [];
             if isfield(data, 'echoes')
                 obj.echoes = data.echoes;

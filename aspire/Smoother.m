@@ -24,7 +24,7 @@ classdef Smoother < handle
         function smoothed = smooth(self, smoothed, weight, varargin)
             factor = 1;
             if nargin == 2
-                weight = ones(size(smoothed));
+                weight = ones(size(smoothed, 1), size(smoothed, 2), size(smoothed, 3));
             end
             if nargin == 4
                 factor = varargin{1};

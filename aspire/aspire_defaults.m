@@ -1,5 +1,6 @@
 %% dafault configuration for combination program
 
+data.filename_mag = '';
 data.rpo_weigthedSmoothing = 0;
 data.aspire_echoes = [1 2];
 data.mcpc3d_echoes = [1 2];
@@ -8,7 +9,7 @@ data.mcpc3ds_unwrapping_method = 'cusack';
 data.slices = 1:user_data.dim(3);
 data.combination_mode = 'aspire';
 data.processing_option = 'slice_by_slice';
-data.save_steps = 1;
+data.save_steps = 0;
 data.verbose = 0;
 data.unwrapping_method = 'none';
 data.parallel = 0;
@@ -29,3 +30,5 @@ data.iterativeSteps = 0;
 data.swi = 0;
 data.swiSmoother = GaussianBoxSmoother;
 data.combination = MagWeightedCombination;
+data.singleEcho = 0;
+data.singleChannelCombination = 0;
