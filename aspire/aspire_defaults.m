@@ -32,3 +32,4 @@ data.swiSmoother = GaussianBoxSmoother;
 data.combination = MagWeightedCombination;
 data.singleEcho = 0;
 data.singleChannelCombination = 0;
+data.combination_smoother = NanGaussianSmoother;

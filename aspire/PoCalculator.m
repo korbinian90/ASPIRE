@@ -54,7 +54,10 @@ methods
     end
 
     function setSens(self, compl)
-        self.po = self.removeMag(self.po) .* abs(compl(:,:,:,1,:));
+        if isempty(self.po)
+            self.po = ones(size(compl, 1), size(compl, 2), size(compl, 3), 1, size(compl,5));
+        end
+        self.po = exp(1i * angle(self.po)) .* abs(compl(:,:,:,1,:));
     end
     
     function sens = getSens(self)

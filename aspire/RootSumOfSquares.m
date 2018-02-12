@@ -1,4 +1,4 @@
-classdef RootSumOfSquares
+classdef RootSumOfSquares < Combination
     %COMBINATION Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -18,8 +18,9 @@ classdef RootSumOfSquares
             for iCha = 1:dimension(5)
                 combined = combined + abs(image(:,:,:,:,iCha)) .^ 2;
             end
-            combined = combined ./ sqrt(abs(combined));
+            combined = sqrt(combined);
             
+            % necessary?
             combined(~isfinite(combined)) = 0;
         end
     end
