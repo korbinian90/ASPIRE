@@ -14,7 +14,7 @@ classdef Aspire < handle
         function obj = Aspire(user_data)
             obj.setupFolder(user_data); % stops with error, if no permission
             user_data = getHeaderInfo(user_data);
-            obj.data = obj.getDefault(user_data);
+            obj.getDefault(user_data);
             obj.data = checkForWrongOptions(obj.data);
 
             if strcmpi(obj.data.processing_option, 'all_at_once')
@@ -37,26 +37,23 @@ classdef Aspire < handle
         
         
         function run(self)
+            tic;
             self.openMatlabpool();
-%             try        
-                parfor i = 1:self.sliceLoop
-                    iSlice = self.data.slices(i);
-                    
-                    combined = self.combine(iSlice);
-                    self.unwrap(combined);
-                    self.swi(combined);
-                end   
-                
-%             catch exception
-%                 self.closeMatlabpool();
-%                 throw(exception)
-%             end
+            for i = 1:self.sliceLoop
+                iSlice = self.data.slices(i);
+                %% Main Steps
+                combined = self.combine(iSlice);
+                self.unwrap(combined);
+                self.swi(combined);
+            end
             self.closeMatlabpool();
             
             %% POSTPROCESSING
             if strcmpi(self.data.processing_option, 'slice_by_slice')
                 self.concatImagesInSubdirs(self.data);
-            end    
+            end
+            disp(['Results written to ' self.data.write_dir '/results'])
+            disp(['Total time: ' secs2hms(toc)])
         end
         
         
@@ -72,15 +69,10 @@ classdef Aspire < handle
             end
 
             %% read in the data and get complex + weight (sum of mag)
+            self.log('Importing images...');
             compl = storage.importImages();
-
+            
             storage.setSubdir('steps');
-
-            % TIMING BEGIN COMBINATION
-            if strcmpi(self.data.processing_option, 'all_at_once')
-               time = toc;
-               disp('Finished loading images, calculating...');
-            end
 
             %% Main steps
             if size(compl, 5) > 1 || self.data.singleChannelCombination
@@ -88,17 +80,13 @@ classdef Aspire < handle
             else
                 combined = compl;
             end
-            
-            % TIMING END COMBINATION
-            if strcmpi(self.data.processing_option, 'all_at_once')
-               disp(['Time for combination: ' secs2hms(toc-time)]);
-            end    
         end
         
         
         function combined = combinationSteps(self, iSlice, compl)
             storage = self.data.storage;
     
+            self.log('Calculating phase offsets / sensitivities...');
             poCalc = self.poCalculator;
             poCalc.setSlice(iSlice);
             poCalc.calculatePo(compl);
@@ -109,23 +97,22 @@ classdef Aspire < handle
             storage.write(real(poCalc.po), 'realBeforeSmooth');
             storage.write(imag(poCalc.po), 'imagBeforeSmooth');
             
+            self.log('Smoothing phase offsets / sensitivities...');
             weight = abs(compl(:,:,:,min(end, 2),:));
             poCalc.smoothPo(weight);
             if ~self.data.singleEcho
+                self.log('Performing iterative correction of phase offsets...');
                 poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
             end
             storage.write(abs(poCalc.po), 'sens', self.data.write_channels_po);
             storage.write(real(poCalc.po), 'realSens', self.data.write_channels_po);
             storage.write(imag(poCalc.po), 'imagSens', self.data.write_channels_po);
 
-            % TIMING END GETRPO
-            if strcmpi(self.data.processing_option, 'all_at_once')
-               disp(['Time for getRpo: ' secs2hms(toc-time)]);
-            end    
-
         %     poCalc.removeLowSens();
+            self.log('Removing phase offsets...');
             compl = poCalc.removePo(compl);
             
+            self.log('Performing combination...');
             self.data.combination.setSlice(iSlice);
             combined = self.data.combination.combine(compl, poCalc.getSens());
 
@@ -145,6 +132,7 @@ classdef Aspire < handle
         function unwrap(self, combined, iSlice)
             if ~strcmp(self.data.unwrapping_method, 'none')
                 %% unwrap combined phase
+                self.log('Unwrapping...');
                 combined_phase = angle(combined);
                 [unwrapped, unwrappingSteps] = unwrappingSelector(self.data, combined_phase, abs(combined(:,:,:,1)));
                 saveStruct(self.data, iSlice, 'unwrappingSteps', unwrappingSteps);
@@ -157,6 +145,7 @@ classdef Aspire < handle
         function swi(self, combined, iSlice)
             %% SWI
             if isfield(self.data, 'swiCalculator')
+                self.log('Calculating SWI...');
                 self.swiCalculator.setSlice(iSlice);
                 swi = self.swiCalculator.calculate(combined);
                 storage.setSubdir('results');
@@ -177,22 +166,26 @@ classdef Aspire < handle
                 matlabpool('close');
             end
         end
-    end
+        
+        
+        function log(self, message)
+            if strcmp(self.data.processing_option, 'all_at_once')
+                disp(message)
+            end
+        end
     
-    methods (Static)
-    
-        function [ data ] = getDefault(user_data)
-        %GETDEFAULT Sets default values, if they are missing
-
+        
+        function getDefault(self, user_data)
+        %GETDEFAULT Sets default values from aspire_defaults.m
             % load default values
-            aspire_defaults;
-
+            newData = loadAspireDefaultValues();
+            
             % apply defaults for missing values
             for user_selections = fieldnames(user_data)'
                 data.(user_selections{1}) = user_data.(user_selections{1});
             end
 
-            % if custom channles are specified
+            % if custom channels are specified
             if ~isempty(data.channels)
                 % replace n_channels by custom value
                 data.n_channels = length(data.channels);
@@ -203,14 +196,23 @@ classdef Aspire < handle
                 end
             end
 
-            data.smoothingSigmaSizeInVoxel = mmToVoxel(data.smoothingSigmaSizeInMM, data.nii_pixdim);
+            data.smoothingSigmaSizeInVoxel = self.mmToVoxel(data.smoothingSigmaSizeInMM, data.nii_pixdim);
 
             data.parallel = min(feature('numCores'), data.parallel);
 
             data.write_channels = data.write_channels(data.write_channels <= data.n_channels);
 
+            self.data = data;
+        end
+    end
+    
+    methods (Static)
+      
+        function sizeInVoxel = mmToVoxel(sizeInMM, nii_pixdim)
+            sizeInVoxel = sizeInMM ./ nii_pixdim(2:4);
         end
 
+        
         % still required?
         function setupFolder(data)
         %SETUPFOLDERS Setup the folders

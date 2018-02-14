@@ -8,6 +8,8 @@ function output_line = nanBoxFilterLine2(line, boxSize)
 
     r = floor(boxSize / 2);
 
+    maxFills = 2 * r;
+    
     % padding of line for easy calculation
     zz = nan(r * 2, size(line, 2));
     line = [zz; line; zz];
@@ -22,11 +24,11 @@ function output_line = nanBoxFilterLine2(line, boxSize)
     
     mode = 0;
     
-    % smoothing along
+    %% smoothing along
     
     for i = 1:dimension(1)-r-1
         % check for mode change
-        switch mode
+        switch mode % 0 NaN-mode  1 normal-mode  2 fill-mode
             case 1
                 if isnan(line(i+r+1,1))
                     mode = 2;
@@ -49,7 +51,7 @@ function output_line = nanBoxFilterLine2(line, boxSize)
             case 2
                 if isnan(line(i+r,1))
                     nFills = nFills + 1;
-                    if nFills > r
+                    if nFills > maxFills
                         mode = 0;
                         nFills = 0;
                         lSum = zeros(1, dimension(2));

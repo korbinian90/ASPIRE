@@ -14,7 +14,19 @@ methods
             self.aspireEchoes = data.aspire_echoes;
         end
         self.iterativeSteps = data.iterativeSteps;
+        self.checkRestrictions(data);
     end
+    
+    function checkRestrictions(~, data)
+        if data.n_channels == 1
+            warning('Only one channel: ASPIRE correction will be performed!')
+        end
+        if data.n_echoes == 1
+            error('ASPIRE requires at least two echoes')
+        end
+        % TODO: warning if echo time is not double
+    end
+    
     % override
     function calculatePo(self, compl)
         self.po = self.calculateAspirePo(compl, self.aspireEchoes, 1, self.storage);

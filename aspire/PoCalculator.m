@@ -28,6 +28,7 @@ methods
         self.storage.setSlice(slice);
     end
     
+    % TODO: does it make sense?
     function removeLowSens(self)
         pSum = sum(abs(self.po), 5);
         remove = pSum < 0.1 * max(pSum(:));

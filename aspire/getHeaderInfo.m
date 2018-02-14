@@ -26,7 +26,7 @@ function [ data ] = getHeaderInfo( data )
         data.TEs = fromTextHeader(data.filename_textHeader, data.n_echoes);
     end
     
-    fprintf('There are %i echoes and %i channels\n', phaseData.n_echoes, phaseData.n_channels);
+    fprintf('There are %i echoes and %i channels\n', data.n_echoes, data.n_channels);
 end
 
 

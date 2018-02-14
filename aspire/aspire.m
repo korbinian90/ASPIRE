@@ -134,11 +134,6 @@ function combined = combinationSteps(data, iSlice, compl)
     storage.write(real(poCalc.po), 'realSens', data.write_channels_po);
     storage.write(imag(poCalc.po), 'imagSens', data.write_channels_po);
     
-    % TIMING END GETRPO
-    if strcmpi(data.processing_option, 'all_at_once')
-       disp(['Time for getRpo: ' secs2hms(toc-time)]);
-    end    
-
 %     poCalc.removeLowSens();
     storage.write(abs(poCalc.po), 'lowSens', data.write_channels_po);
     compl = poCalc.removePo(compl);

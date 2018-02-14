@@ -96,9 +96,9 @@ classdef AspireSensCalculator < AspirePoCalculator
             echoDiff = zeros(dim(1:3));
             weightSum = zeros(dim(1:3));
             for iCha = 1:size(compl, 5)
-                weight = abs(compl(:,:,:,1,iCha));
-                weightSum = weightSum + weight;
-                echoDiff = echoDiff + weight .* (compl(:,:,:,1,iCha) ./ compl(:,:,:,2,iCha));
+                mag = abs(compl(:,:,:,1,iCha));
+                weightSum = weightSum + mag;
+                echoDiff = echoDiff + mag .* (compl(:,:,:,1,iCha) ./ compl(:,:,:,2,iCha));
             end
             echoDiff = echoDiff ./ weightSum;
             echoDiff(~isfinite(echoDiff)) = 0;

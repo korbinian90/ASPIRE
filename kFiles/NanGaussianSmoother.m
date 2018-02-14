@@ -9,19 +9,19 @@ classdef NanGaussianSmoother < Smoother
         % implement
         function smoothed = smoothImplementation(self, input, weight, factor)
             sigma = self.sigmaInVoxel * factor;
-            
-            if self.smooth3d
-%                 smoothed = weightedGaussianSmooth3d(input, sigma, weight);
-            else
-                threshold = 0.25;
+
+            threshold = 0.25;
 %                 weight = sum(weight, 5);
-                % TODO slicewise for 3d
-                mean_mask = weight >= mean(weight(:));
-                mean_mask = weight >= mean(weight(mean_mask));
-                mean_mask = weight >= mean(weight(mean_mask));
-                mask = weight < threshold * mean(weight(mean_mask));
-                self.storage.write(single(mask), 'mask');
-                
+            % TODO slicewise for 3d
+            mean_mask = weight >= mean(weight(:));
+            mean_mask = weight >= mean(weight(mean_mask));
+            mean_mask = weight >= mean(weight(mean_mask));
+            mask = weight < threshold * mean(weight(mean_mask));
+            self.storage.write(single(mask), 'mask');
+
+            if self.smooth3d
+                smoothed = nanGaussianSmooth3d(input, sigma, mask);
+            else
                 smoothed = nanGaussianSmooth(input, sigma, mask);
             end
         end
