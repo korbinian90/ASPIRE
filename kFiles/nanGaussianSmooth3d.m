@@ -15,7 +15,7 @@ function smoothed_image = nanGaussianSmooth3d(input_image, sigma, mask)
     
     smoothed_image = input_image;
     
-    sz = size(smoothed_image);
+    sz = [size(smoothed_image, 1) size(smoothed_image, 2) size(smoothed_image, 3), size(smoothed_image, 4) size(smoothed_image, 5)];
     % nan-masking
     for iCha = 1:sz(5)
         masked = smoothed_image(:,:,:,:,iCha);

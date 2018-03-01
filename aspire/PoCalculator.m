@@ -11,6 +11,9 @@ methods (Abstract)
 end
 
 methods
+    function checkRestrictions(self, data) %#ok<INUSD>
+    end
+    
     function setup(self, data)
         self.storage = Storage(data);
         self.storage.setSubdir('poCalculation');
@@ -21,7 +24,7 @@ methods
     function iterativeCorrection(~, ~)
     end
     
-    function preprocess(~)
+    function preprocess(self) %#ok<MANU>
     end
     
     function setSlice(self, slice)
@@ -30,16 +33,17 @@ methods
     
     % TODO: does it make sense?
     function removeLowSens(self)
+        threshold = 0.01;
         pSum = sum(abs(self.po), 5);
-        remove = pSum < 0.1 * max(pSum(:));
+        remove = pSum < threshold * max(pSum(:));
         remove = repmat(remove, [1 1 1 1 size(self.po, 5)]);
         self.po(remove) = 0;
         
-        for iCha = 1:size(self.po, 4)
-            p = self.po(:,:,:,1,iCha);
-            p(abs(p) < 0.1 * max(abs(p(:)))) = 0; 
-            self.po(:,:,:,1,iCha) = p;
-        end
+%         for iCha = 1:size(self.po, 4)
+%             p = self.po(:,:,:,1,iCha);
+%             p(abs(p) < threshold * max(abs(p(:)))) = 0; 
+%             self.po(:,:,:,1,iCha) = p;
+%         end
     end
     
     function compl = removePo(self, compl)
@@ -98,4 +102,3 @@ methods (Static)
 end
 
 end
-

@@ -6,26 +6,19 @@ end
 
 methods
     % override
-    function setup(self, data)
-        setup@PoCalculator(self, data);
-        self.checkRestrictions(data);
-    end
-    
-    % override
     function calculatePo(self, compl)
         vrcCoil = self.getVrcCoil(compl(:,:,:,1,:));
         self.po = self.subtractFromEcho(compl, vrcCoil, 1);
     end
-   
-end
-
-methods (Access = private)
     
-    function checkRestrictions(~, data)
+   function checkRestrictions(~, data)
         if strcmp(data.processing_option, 'slice_by_slice')
             error('VRC only works with processing_option = ''all_at_once''');
         end
     end
+end
+
+methods (Access = private)
 
     function vrcCoil = getVrcCoil(self, compl)
         centered = self.phaseMatchingOfChannels(compl);

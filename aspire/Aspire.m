@@ -7,6 +7,7 @@ classdef Aspire < handle
         sliceLoop
         poCalculator
         swiCalculator
+        storage
     end
     
     methods
@@ -14,7 +15,8 @@ classdef Aspire < handle
         function obj = Aspire(user_data)
             obj.setupFolder(user_data); % stops with error, if no permission
             user_data = getHeaderInfo(user_data);
-            obj.getDefault(user_data);
+            obj.data = obj.getDefault(user_data);
+            obj.swiCalculator = obj.data.swiCalculator;
             obj.data = checkForWrongOptions(obj.data);
 
             if strcmpi(obj.data.processing_option, 'all_at_once')
@@ -23,14 +25,15 @@ classdef Aspire < handle
                 obj.sliceLoop = length(obj.data.slices);
             end
             
-            obj.data.storage = Storage(obj.data);
+            obj.storage = Storage(obj.data);
             obj.poCalculator = obj.data.poCalculator;
             obj.poCalculator.setup(obj.data);
+            obj.poCalculator.checkRestrictions(obj.data);
             obj.poCalculator.preprocess();
     
             obj.data.combination.setup(obj.data);
             
-            if isfield(obj.data, 'swiCalculator')
+            if ~isempty(obj.swiCalculator)
                 obj.swiCalculator.setup(obj.data);
             end
         end
@@ -39,12 +42,12 @@ classdef Aspire < handle
         function run(self)
             tic;
             self.openMatlabpool();
-            for i = 1:self.sliceLoop
+            parfor i = 1:self.sliceLoop
                 iSlice = self.data.slices(i);
                 %% Main Steps
-                combined = self.combine(iSlice);
+                [combined, weight] = self.combine(iSlice);
                 self.unwrap(combined);
-                self.swi(combined);
+                self.swi(combined, weight, iSlice);
             end
             self.closeMatlabpool();
             
@@ -57,10 +60,9 @@ classdef Aspire < handle
         end
         
         
-        function combined = combine(self, iSlice)
+        function [combined, weight] = combine(self, iSlice)
             % slice is the anatomical slice (i is the loop counter)
-            storage = self.data.storage;
-            storage.setSlice(iSlice);
+            self.storage.setSlice(iSlice);
 
             if strcmpi(self.data.processing_option, 'all_at_once')
                 disp('calculating all at once, it could take a while...');
@@ -70,32 +72,33 @@ classdef Aspire < handle
 
             %% read in the data and get complex + weight (sum of mag)
             self.log('Importing images...');
-            compl = storage.importImages();
+            compl = self.storage.importImages();
             
-            storage.setSubdir('steps');
+            self.storage.setSubdir('steps');
 
+            weight = sum(abs(compl), 5);
+            
             %% Main steps
             if size(compl, 5) > 1 || self.data.singleChannelCombination
                 combined = self.combinationSteps(iSlice, compl);
             else
                 combined = compl;
+                display('already combined!');
             end
         end
         
         
         function combined = combinationSteps(self, iSlice, compl)
-            storage = self.data.storage;
-    
             self.log('Calculating phase offsets / sensitivities...');
             poCalc = self.poCalculator;
             poCalc.setSlice(iSlice);
             poCalc.calculatePo(compl);
             poCalc.setSens(compl);
 
-            storage.write(poCalc.po, 'poBeforeSmooth');
-            storage.write(abs(poCalc.po), 'sensBeforeSmooth');
-            storage.write(real(poCalc.po), 'realBeforeSmooth');
-            storage.write(imag(poCalc.po), 'imagBeforeSmooth');
+            self.storage.write(poCalc.po, 'poBeforeSmooth');
+            self.storage.write(abs(poCalc.po), 'sensBeforeSmooth');
+            self.storage.write(real(poCalc.po), 'realBeforeSmooth');
+            self.storage.write(imag(poCalc.po), 'imagBeforeSmooth');
             
             self.log('Smoothing phase offsets / sensitivities...');
             weight = abs(compl(:,:,:,min(end, 2),:));
@@ -104,11 +107,11 @@ classdef Aspire < handle
                 self.log('Performing iterative correction of phase offsets...');
                 poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
             end
-            storage.write(abs(poCalc.po), 'sens', self.data.write_channels_po);
-            storage.write(real(poCalc.po), 'realSens', self.data.write_channels_po);
-            storage.write(imag(poCalc.po), 'imagSens', self.data.write_channels_po);
+            self.storage.write(abs(poCalc.po), 'sens', self.data.write_channels_po);
+            self.storage.write(real(poCalc.po), 'realSens', self.data.write_channels_po);
+            self.storage.write(imag(poCalc.po), 'imagSens', self.data.write_channels_po);
 
-        %     poCalc.removeLowSens();
+%             poCalc.removeLowSens();
             self.log('Removing phase offsets...');
             compl = poCalc.removePo(compl);
             
@@ -116,16 +119,16 @@ classdef Aspire < handle
             self.data.combination.setSlice(iSlice);
             combined = self.data.combination.combine(compl, poCalc.getSens());
 
-            storage.write(poCalc.po, 'po', self.data.write_channels_po);
+            self.storage.write(poCalc.po, 'po', self.data.write_channels_po);
 
             %% ratio
             ratio = calcRatio(self.data.n_echoes, combined, compl, self.data.weightedCombination);
-            storage.write(ratio, 'ratio');
+            self.storage.write(ratio, 'ratio');
             
             %% write results
-            storage.setSubdir('results');
-            storage.write(angle(combined), 'combined_phase');
-            storage.write(abs(combined), 'combined_mag');
+            self.storage.setSubdir('results');
+            self.storage.write(angle(combined), 'combined_phase');
+            self.storage.write(abs(combined), 'combined_mag');
         end
         
         
@@ -136,20 +139,20 @@ classdef Aspire < handle
                 combined_phase = angle(combined);
                 [unwrapped, unwrappingSteps] = unwrappingSelector(self.data, combined_phase, abs(combined(:,:,:,1)));
                 saveStruct(self.data, iSlice, 'unwrappingSteps', unwrappingSteps);
-                storage.setSubdir('results');
-                storage.write(unwrapped, 'unwrapped');
+                self.storage.setSubdir('results');
+                self.storage.write(unwrapped, 'unwrapped');
             end
         end
         
         
-        function swi(self, combined, iSlice)
+        function swi(self, combined, weight, iSlice)
             %% SWI
-            if isfield(self.data, 'swiCalculator')
+            if ~isempty(self.swiCalculator)
                 self.log('Calculating SWI...');
                 self.swiCalculator.setSlice(iSlice);
-                swi = self.swiCalculator.calculate(combined);
-                storage.setSubdir('results');
-                storage.write(swi, 'swi');
+                swi = self.swiCalculator.calculate(combined, weight);
+                self.storage.setSubdir('results');
+                self.storage.write(swi, 'swi');
             end
         end
         
@@ -174,40 +177,41 @@ classdef Aspire < handle
             end
         end
     
-        
-        function getDefault(self, user_data)
-        %GETDEFAULT Sets default values from aspire_defaults.m
-            % load default values
-            newData = loadAspireDefaultValues();
-            
-            % apply defaults for missing values
-            for user_selections = fieldnames(user_data)'
-                data.(user_selections{1}) = user_data.(user_selections{1});
-            end
 
-            % if custom channels are specified
-            if ~isempty(data.channels)
-                % replace n_channels by custom value
-                data.n_channels = length(data.channels);
-                % adjust indices of write_channels if subset of channels and set write_channels to all channels otherwise
-                [subset, data.write_channels] = ismember(data.write_channels, data.channels);
-                if ~all(subset)
-                    data.write_channels = 1:data.n_channels;
-                end
-            end
-
-            data.smoothingSigmaSizeInVoxel = self.mmToVoxel(data.smoothingSigmaSizeInMM, data.nii_pixdim);
-
-            data.parallel = min(feature('numCores'), data.parallel);
-
-            data.write_channels = data.write_channels(data.write_channels <= data.n_channels);
-
-            self.data = data;
-        end
     end
     
     methods (Static)
-      
+              
+        function data = getDefault(user_data)
+        %GETDEFAULT Sets default values from aspire_defaults.m
+            % load default values
+            newData = loadAspireDefaultValues(user_data);
+            
+            % apply defaults for missing values
+            for user_selections = fieldnames(user_data)'
+                newData.(user_selections{1}) = user_data.(user_selections{1});
+            end
+
+            % if custom channels are specified
+            if ~isempty(newData.channels)
+                % replace n_channels by custom value
+                newData.n_channels = length(newData.channels);
+                % adjust indices of write_channels if subset of channels and set write_channels to all channels otherwise
+                [subset, newData.write_channels] = ismember(newData.write_channels, newData.channels);
+                if ~all(subset)
+                    newData.write_channels = 1:newData.n_channels;
+                end
+            end
+
+            newData.smoothingSigmaSizeInVoxel = Aspire.mmToVoxel(newData.smoothingSigmaSizeInMM, newData.nii_pixdim);
+
+            newData.parallel = min(feature('numCores'), newData.parallel);
+
+            newData.write_channels = newData.write_channels(newData.write_channels <= newData.n_channels);
+
+            data = newData;
+        end
+        
         function sizeInVoxel = mmToVoxel(sizeInMM, nii_pixdim)
             sizeInVoxel = sizeInMM ./ nii_pixdim(2:4);
         end
@@ -226,14 +230,13 @@ classdef Aspire < handle
         end
 
         % deprecated
-        function saveStruct(data, slice, subdir, save)
+        function saveStruct(~, slice, subdir, save)
         %SAVESTRUCT saves all images from save to disk
             if ~isempty(save)
-                storage = Storage(data);
-                storage.setSubdir(subdir);
-                storage.setSlice(slice);
+                self.storage.setSubdir(subdir);
+                self.storage.setSlice(slice);
                 for i = 1:length(save.filenames)
-                    storage.write(save.images{i}, save.filenames{i});
+                    self.storage.write(save.images{i}, save.filenames{i});
                 end
             end
         end

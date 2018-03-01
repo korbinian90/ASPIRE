@@ -28,9 +28,9 @@ classdef SwiCalculator < handle
             self.storage.setSlice(slice);
         end
         
-        function swi = calculate(self, compl)
+        function swi = calculate(self, compl, weight)
             unwrapped = self.unwrap(compl);
-            hp = self.highPassFilter(unwrapped, abs(compl));
+            hp = self.highPassFilter(unwrapped, weight);
 %             hp = angle(self.highPassFilterCompl(exp(1i * unwrapped)), abs(compl));
             combinedPhase = self.combineEchoesPhase(hp);
             combinedMag = self.combineEchoes(abs(compl));
@@ -58,7 +58,7 @@ classdef SwiCalculator < handle
         
         function combined = combineEchoesPhase(self, echoes)
             TEs = self.echoTimes / 1000; % TE in [ms]
-            dim = size(echoes);
+            dim = [size(echoes, 1) size(echoes, 2) size(echoes, 3)];
             repDim = [dim(1:3) 1];
             reshapeDim = [1 1 1 length(TEs)];
             echoes = echoes ./ repmat(reshape(TEs, reshapeDim), repDim);
@@ -67,7 +67,7 @@ classdef SwiCalculator < handle
         
         function combined = combineEchoes(self, echoes)
             TEs = self.echoTimes / 1000; % TE in [ms]
-            dim = size(echoes);
+            dim = [size(echoes, 1) size(echoes, 2) size(echoes, 3)];
             repDim = [dim(1:3) 1];
             reshapeDim = [1 1 1 length(TEs)];
             T2star = 30; % approx value for 7T
