@@ -14,7 +14,7 @@ classdef GaussianBoxSmoother < Smoother
             sigma = self.sigmaInVoxel * factor;
             
             if self.smooth3d
-                smoothed = weightedGaussianSmooth3d(input, sigma, weight);
+                smoothed = weightedGaussianSmooth3D(input, sigma, weight);
             else
                 smoothed = weightedGaussianSmooth(input, sigma, weight);
             end

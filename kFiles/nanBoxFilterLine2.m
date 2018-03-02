@@ -6,9 +6,15 @@ function output_line = nanBoxFilterLine2(line, boxSize)
     % strictly positive (ensured in calling function
     % weightedGaussianSmooth)
 
+    if mod(boxSize, 2) == 0
+        warning('boxSize is even!')
+        warning('Changed to next smaller odd integer')
+        boxSize = boxSize - 1;
+    end
+    
     r = floor(boxSize / 2);
 
-    maxFills = 2 * r;
+    maxFills = r;
     
     % padding of line for easy calculation
     zz = nan(r * 2, size(line, 2));

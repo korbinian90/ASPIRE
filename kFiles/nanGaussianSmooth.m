@@ -12,8 +12,8 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
     
     dimension = size(input_image);
     
-    % set NaN/Inf values to 0 and the weighting for those values to 0
-    input_image(~isfinite(input_image)) = 0;
+    % set NaN/Inf values to NaN
+    input_image(~isfinite(input_image)) = NaN;
     
     smoothed_image = input_image;
     
@@ -24,7 +24,7 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
     end
     boxSizes = getBoxSizes(sigma, n_box);
     for iSlice = 1:slice_loop
-            repMask = repmat(mask(:,:,iSlice), [1 1 size(input_image, 4)]);
+            repMask = repmat(mask(:,:,iSlice), [1 1 size(input_image, 5)]);
             slice_image = squeeze(smoothed_image(:,:,iSlice,:));
             slice_image(repMask) = NaN;
         for i = 1:2*n_box

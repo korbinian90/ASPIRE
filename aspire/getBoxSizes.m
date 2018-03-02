@@ -4,9 +4,7 @@ function boxSizes = getBoxSizes(sigma, n)
     
     wl = floor(wIdeal);
     
-    if (mod(wl, 2) == 0)
-        wl = wl - 1;
-    end
+    wl = wl - 1 * mod(wl + 1, 2);
     
     wu = wl + 2;
 				

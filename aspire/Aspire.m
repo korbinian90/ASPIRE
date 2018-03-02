@@ -42,7 +42,7 @@ classdef Aspire < handle
         function run(self)
             tic;
             self.openMatlabpool();
-            parfor i = 1:self.sliceLoop
+            for i = 1:self.sliceLoop
                 iSlice = self.data.slices(i);
                 %% Main Steps
                 [combined, weight] = self.combine(iSlice);
