@@ -23,6 +23,7 @@ function data = loadAspireDefaultValues(user_data)
         data.write_channels_po = data.write_channels;
     end
     data.channels = []; % all channels are used
+    % data.echoes = []; % all echoes are used
     data.smoothingSigmaSizeInMM = 5;
     data.weighted_smoothing = 0;
     data.weightedCombination = 1;

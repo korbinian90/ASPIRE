@@ -19,6 +19,19 @@ classdef Storage < FlexibleStorage
             if isfield(data, 'echoes')
                 obj.echoes = data.echoes;
             end
+            obj.nSlices = length(data.slices);
+            obj.slices = data.slices;
+            obj.parallel = data.parallel;
+        end
+        
+        % destructor (is called at the end and closes the files)
+        function delete(obj)
+            if ~isempty(obj.openFiles)
+                fields = fieldnames(obj.openFiles);
+                for iFile = 1:numel(obj.openFiles)
+                    fclose(obj.openFiles.(fields{iFile}));
+                end
+            end
         end
     end
     

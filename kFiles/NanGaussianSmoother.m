@@ -24,7 +24,7 @@ classdef NanGaussianSmoother < Smoother
             else
                 smoothed = nanGaussianSmooth(input, sigma, mask);
             end
-%             smoothed(~isfinite(smoothed)) = 0;
+            smoothed(~isfinite(smoothed)) = 0;
         end
         
         % override

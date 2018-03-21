@@ -11,6 +11,10 @@ classdef FlexibleStorage < handle
         filenames
         echoes
         singleEcho
+        openFiles
+        nSlices
+        slices
+        parallel
     end
     
     methods
@@ -24,13 +28,23 @@ classdef FlexibleStorage < handle
                 raw_hdr = load_nii_hdr(sample_fn);
                 obj.pixdim = raw_hdr.dime.pixdim(2:4);
                 obj.channels = raw_hdr.dime.dim(6);
-                obj.echoes = raw_hdr.dime.dim(5);
-                if obj.echoes == 1
+                nEchoes = raw_hdr.dime.dim(5);
+                obj.nSlices = raw_hdr.dime.dim(4);
+                if nEchoes == 1
                     obj.singleEcho = 1;
                 end
             end
         end
         
+        % destructor (is called at the end and closes the files)
+        function delete(obj)
+            if ~isempty(obj.openFiles)
+                fields = fieldnames(obj.openFiles);
+                for iFile = 1:numel(obj.openFiles)
+                    fclose(obj.openFiles.(fields{iFile}));
+                end
+            end
+        end
         
         function write(self, image, name, channels)
             if self.path
@@ -133,15 +147,106 @@ classdef FlexibleStorage < handle
 
     methods (Access = private)
         function saveAndCenter(self, image, path)
-            if self.slicewise && (size(image, 3) == 1)
-                [path, name, ext] = fileparts(path);
-                folderPath = fullfile(path, 'sep');
-                self.createFolderIfNotExisting(folderPath);
-                fileName = [name '_' num2str(self.slice) ext];
-                path = fullfile(folderPath, fileName);
+            if self.slicewise && ~self.parallel
+                self.saveSlicewise(image, path);
+            else
+                if self.slicewise && (size(image, 3) == 1)
+                    [path, name, ext] = fileparts(path);
+                    folderPath = fullfile(path, 'sep');
+                    self.createFolderIfNotExisting(folderPath);
+                    fileName = [name '_' num2str(self.slice) ext];
+                    path = fullfile(folderPath, fileName);
+                end
+                image_nii = make_nii(single(image), self.pixdim);
+                centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
             end
-            image_nii = make_nii(single(image), self.pixdim);
-            centre_and_save_nii(image_nii, path, image_nii.hdr.dime.pixdim);
+        end
+        
+        function saveSlicewise(self, image, path)
+            writefile = self.getFile(image, path);
+            [precision, bitpix] = self.getPrecision(image);
+            for iEcho = 1:size(image, 4)
+                fseek(writefile, self.getFilePosition(image, iEcho, bitpix), 'bof');
+                fwrite(writefile, image(:,:,:,iEcho), precision);
+%                 parfeval(@fseek, 0, writefile, image(:,:,:,iEcho), precision);
+            end
+%             fclose(writefile);
+        end
+        
+        function position = getFilePosition(self, image, iEcho, bitpix)
+            sliceNumber = find(self.slices - self.slice == 0);
+            position = 352 + size(image, 1) * size(image, 2) * double(bitpix) / 8 * ((sliceNumber - 1) + self.nSlices * (iEcho - 1));
+        end
+        
+        function fileHandle = getFile(self, image, path)
+            writefile = self.getFieldNameFromPath(path);
+            if ~isfield(self.openFiles, writefile)
+                fileHandle = fopen(path, 'w');
+                self.openFiles.(writefile) = fileHandle;
+                
+                header = self.getHeader(image);
+                save_nii_hdr(header, fileHandle);
+                skip_bytes = double(header.dime.vox_offset) - 348;
+                if skip_bytes
+                    fwrite(fileHandle, ones(1,skip_bytes), 'uint8');
+                end
+                dataSize = size(image, 1) * size(image, 2) * double(header.dime.bitpix) / 8 * self.nSlices * size(image, 4);
+                fwrite(fileHandle, 0, 'uint8', dataSize - 1); % prefills file with zeroes
+            else
+                fileHandle = self.openFiles.(writefile);
+%                 fileHandle = fopen(path, 'w');
+            end
+        end
+        
+        function fieldName = getFieldNameFromPath(~, path)
+            fieldName = regexprep(path, '\W', '');
+            maxLen = 60;
+            if length(fieldName) > maxLen
+                fieldName = fieldName((end - maxLen + 1):end);
+            end
+        end
+        
+        function [precision, bitpix] = getPrecision(~, image)
+            if isa(image, 'logical')
+                bitpix = int16(1 ); precision = 'ubit1';
+            elseif   isa(image, 'uint8')
+                bitpix = int16(8 ); precision = 'uint8';
+            elseif isa(image, 'int16')
+                bitpix = int16(16); precision = 'int16';
+            elseif isa(image, 'int32')
+                bitpix = int16(32); precision = 'int32';
+            elseif isa(image, 'single')
+                bitpix = int16(32); precision = 'float32';
+            elseif isa(image, 'double')
+                bitpix = int16(64); precision = 'float64';
+            elseif isa(image, 'int8')
+                bitpix = int16(8 ); precision = 'int8';
+            elseif isa(image, 'int16')
+                bitpix = int16(16); precision = 'uint16';
+            elseif isa(image, 'uint32')
+                bitpix = int16(32); precision = 'uint32';
+            elseif isa(image, 'int64')
+                bitpix = int16(64); precision = 'int64';
+            elseif isa(image, 'uint64')
+                bitpix = int16(64); precision = 'uint64';
+            else
+                error('This datatype is not supported');
+            end
+        end
+        
+        function header = getHeader(self, image)
+            nii = make_nii(image);
+            header = nii.hdr;
+            
+            [~, bitpix] = self.getPrecision(image);
+            header.dime.bitpix = bitpix;
+            header.dime.pixdim = [0 1 1 1 1 1 1 1];
+            header.dime.pixdim(2:(length(self.pixdim) + 1)) = self.pixdim;
+            header.dime.dim(4) = self.nSlices;
+            header = centre_header(header);
+            header.dime.vox_offset = 352;
+            header.hist.magic = 'n+1';
+% %         	header = set_nii_voxel_size(header, self.pixdim);
         end
     end
     

@@ -38,6 +38,13 @@ classdef Aspire < handle
             end
         end
         
+        % destructor
+        function delete(obj)
+            if obj.data.parallel
+                matlabpool('close');
+            end
+        end
+        
         
         function run(self)
             tic;
@@ -49,7 +56,6 @@ classdef Aspire < handle
                 self.unwrap(combined);
                 self.swi(combined, weight, iSlice);
             end
-            self.closeMatlabpool();
             
             %% POSTPROCESSING
             if strcmpi(self.data.processing_option, 'slice_by_slice')
@@ -160,13 +166,6 @@ classdef Aspire < handle
         function openMatlabpool(self)
             if self.data.parallel && matlabpool('size') == 0
                 matlabpool('open', self.data.parallel);
-            end
-        end
-        
-        
-        function closeMatlabpool(self)
-            if self.data.parallel
-                matlabpool('close');
             end
         end
         
