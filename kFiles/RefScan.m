@@ -23,19 +23,6 @@ classdef RefScan < PoCalculator
             refData.write_dir = fullfile(data.write_dir, 'referenceScan');
             refData.save_steps = 1;
             refData.write_channels = 1:32; % temp
-%             refData = getHeaderInfo(refData);
-%             if ~isfield(refData, 'singleEcho')
-%                 refData.singleEcho = 0;
-%             end
-%             refData.channels = [];
-%             refData.smoother = data.smoother;
-%             refData.iterativeSteps = 0;
-%             
-%             %temp
-%             refData.smoothingSigmaSizeInVoxel = data.smoothingSigmaSizeInVoxel;
-%             refData.weighted_smoothing = data.weighted_smoothing;
-%             refData.smooth3d = data.smooth3d;
-%             refData.n_channels = data.n_channels;
             self.refScan = refData;
             
             self.setFilenames(data, self.refScan);

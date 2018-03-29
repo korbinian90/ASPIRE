@@ -1,6 +1,6 @@
 classdef FlexibleStorage < handle
     
-    properties (Access = protected)
+    properties
         superDir
         path
         saveSteps

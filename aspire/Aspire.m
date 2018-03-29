@@ -109,7 +109,7 @@ classdef Aspire < handle
             self.log('Smoothing phase offsets / sensitivities...');
             weight = abs(compl(:,:,:,min(end, 2),:));
             poCalc.smoothPo(weight);
-            if ~self.data.singleEcho
+            if ~self.data.singleEcho && (~isfield(self.data, 'echoes') || length(self.data.echoes) ~= 1)
                 self.log('Performing iterative correction of phase offsets...');
                 poCalc.iterativeCorrection(compl(:,:,:,1:2,:));
             end

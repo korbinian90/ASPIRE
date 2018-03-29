@@ -24,9 +24,15 @@ classdef StoredPo < PoCalculator
         end
         
         function calculatePo(self, ~)
-            if ~isempty(self.fn_po)
-                image = self.storage.getImage(self.fn_po);
-                self.po = exp(1i * image);
+            singleEchoTemp = self.storage.singleEcho;
+            self.storage.singleEcho = 1;
+            
+            if ~isempty(self.fn_po) || ~isempty(self.fn_sens)
+                self.po = 1;
+                if ~isempty(self.fn_po)
+                    image = self.storage.getImage(self.fn_po);
+                    self.po = exp(1i * image);
+                end
                 if isprop(self, 'fn_sens')
                     image = self.storage.getImage(self.fn_sens);
                     self.po = self.po .* image;
@@ -34,6 +40,8 @@ classdef StoredPo < PoCalculator
             else
                 self.po = complex(self.storage.getImage(self.fn_real), self.storage.getImage(self.fn_imag));
             end
+            
+            self.storage.singleEcho = singleEchoTemp;
         end
         
         % override
