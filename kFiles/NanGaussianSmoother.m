@@ -18,7 +18,8 @@ classdef NanGaussianSmoother < Smoother
             mean_mask = weight >= mean(weight(mean_mask));
             mask = weight < threshold * mean(weight(mean_mask));
             self.storage.write(single(mask), 'mask');
-
+            self.storage.write(weight, 'weight');
+            
             if self.smooth3d
                 smoothed = nanGaussianSmooth3d(input, sigma, mask);
             else

@@ -19,9 +19,9 @@ classdef HighPassCombination < RootSumOfSquares
             combined = combine@RootSumOfSquares(abs(image), []);
             self.storage.write(combined, 'rsos');
             lowPass = self.smoother.smooth(combined, combined);
-            lowPass = lowPass - mean(lowPass(:));
+%             lowPass = lowPass - mean(lowPass(:));
             self.storage.write(lowPass, 'lowPass');
-            combined = combined - lowPass;
+            combined = combined ./ lowPass;
         end
     end
     

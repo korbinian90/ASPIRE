@@ -41,7 +41,10 @@ classdef Aspire < handle
         % destructor
         function delete(obj)
             if obj.data.parallel
-                matlabpool('close');
+                try
+                    matlabpool('close');
+                catch
+                end
             end
         end
         
@@ -49,7 +52,7 @@ classdef Aspire < handle
         function run(self)
             tic;
             self.openMatlabpool();
-            for i = 1:self.sliceLoop
+            parfor i = 1:self.sliceLoop
                 iSlice = self.data.slices(i);
                 %% Main Steps
                 [combined, weight] = self.combine(iSlice);
@@ -64,7 +67,6 @@ classdef Aspire < handle
             disp(['Results written to ' self.data.write_dir '/results'])
             disp(['Total time: ' secs2hms(toc)])
         end
-        
         
         function [combined, weight] = combine(self, iSlice)
             % slice is the anatomical slice (i is the loop counter)
