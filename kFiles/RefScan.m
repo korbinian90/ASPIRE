@@ -6,6 +6,8 @@ classdef RefScan < PoCalculator
         storedPo
         filenames
         refScan
+        flipDim
+        permuteDim
     end
     
     methods
@@ -25,6 +27,15 @@ classdef RefScan < PoCalculator
             refData.write_channels = 1:32; % temp
             self.refScan = refData;
             
+            self.flipDim = 0;
+            if isfield(refData, 'flip_dim')
+                self.flipDim = refData.flip_dim;
+            end
+            self.permuteDim = [];
+            if isfield(refData, 'permute_dim')
+                self.permuteDim = refData.permute_dim;
+            end
+            
             self.setFilenames(data, self.refScan);
             self.storedPo = StoredPo([], [], self.filenames.coregSensReal, self.filenames.coregSensImag);
             self.storedPo.setup(data);
@@ -39,6 +50,12 @@ classdef RefScan < PoCalculator
             fn.magCombined = data.filename_magCombined;
             fn.verifyCoreg = fullfile(data.write_dir, 'poCalculation', 'verifyCoreg.nii');
             fn.coregMat = fullfile(data.write_dir, 'poCalculation', 'coregMat.m');
+            
+            fn.flipDir = fullfile(refScan.write_dir, 'flip');
+            fn.flipRefMagCombined = fullfile(fn.flipDir, 'refMagCombined.nii');
+            fn.flipSensReal = fullfile(fn.flipDir, 'sensReal.nii');
+            fn.flipSensImag = fullfile(fn.flipDir, 'sensImag.nii');
+            
             self.filenames = fn;
         end
         
@@ -66,8 +83,13 @@ classdef RefScan < PoCalculator
         end
         
         function coregister(self)
-            fn = self.filenames;
+            if self.flipDim || ~isempty(self.permuteDim)
+                disp(['Flipping dimension ' int2str(self.flipDim) ' of reference scan']);
+                self.flipDimension(self.flipDim, self.permuteDim);
+            end
             
+            disp('Coregistering reference scan');
+            fn = self.filenames;
             getCoregMat_command = sprintf('flirt -in %s -ref %s -out %s -omat %s', fn.refMagCombined, fn.magCombined, fn.verifyCoreg, fn.coregMat);
             applyCoregSensReal_command = sprintf('flirt -in %s -ref %s -applyxfm -init %s -out %s', fn.sensReal, fn.magCombined, fn.coregMat, fn.coregSensReal);
             applyCoregSensImag_command = sprintf('flirt -in %s -ref %s -applyxfm -init %s -out %s', fn.sensImag, fn.magCombined, fn.coregMat, fn.coregSensImag);
@@ -79,6 +101,36 @@ classdef RefScan < PoCalculator
         
         function setSlice(self, iSlice)
             self.storedPo.setSlice(iSlice);
+        end
+        
+        function flipDimension(self, dim, permuteDims)
+            fn = self.filenames;
+            mkdir(fn.flipDir);
+            
+            self.flipImage(fn.refMagCombined, fn.flipRefMagCombined, dim, permuteDims);
+            self.flipImage(fn.sensReal, fn.flipSensReal, dim, permuteDims);
+            self.flipImage(fn.sensImag, fn.flipSensImag, dim, permuteDims);
+            
+            fn.refMagCombined = fn.flipRefMagCombined;
+            fn.sensReal = fn.flipSensReal;
+            fn.sensImag = fn.flipSensImag;
+            self.filenames = fn;
+        end
+        
+        function flipImage(self, original, flipped, dim, permuteDims)
+            permuteDims = [permuteDims 4 5 6 7];
+            nii = load_nii(original);
+            img = nii.img;
+            if dim
+                img = flipdim(img, dim);
+            end
+            if ~isempty(permuteDims)
+                img = permute(img, permuteDims);
+            end
+            pixdim = nii.hdr.dime.pixdim([1 permuteDims + 1]);
+            
+            
+            centre_and_save_nii(make_nii(img), flipped, pixdim);
         end
         
         % override
