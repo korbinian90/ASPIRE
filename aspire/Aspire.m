@@ -37,22 +37,12 @@ classdef Aspire < handle
                 obj.swiCalculator.setup(obj.data);
             end
         end
-        
-        % destructor
-        function delete(obj)
-            if obj.data.parallel
-                try
-                    matlabpool('close');
-                catch
-                end
-            end
-        end
-        
+         
         
         function run(self)
             tic;
-            self.openMatlabpool();
-            parfor i = 1:self.sliceLoop
+            
+            for i = 1:self.sliceLoop
                 iSlice = self.data.slices(i);
                 %% Main Steps
                 [combined, weight] = self.combine(iSlice);
@@ -91,7 +81,7 @@ classdef Aspire < handle
                 combined = self.combinationSteps(iSlice, compl);
             else
                 combined = compl;
-                display('already combined!');
+                disp('already combined!');
             end
         end
         
@@ -163,14 +153,7 @@ classdef Aspire < handle
                 self.storage.write(swi, 'swi');
             end
         end
-        
-        
-        function openMatlabpool(self)
-            if self.data.parallel && matlabpool('size') == 0
-                matlabpool('open', self.data.parallel);
-            end
-        end
-        
+       
         
         function log(self, message)
             if strcmp(self.data.processing_option, 'all_at_once')

@@ -4,7 +4,7 @@ function smoothed_image = nanGaussianSmooth3d(input_image, sigma, mask)
 %   The execution time is independent on kernel size
 
     % number of box filterings
-    nBox = 4; % should be even for symmetrical edge propagation
+    nBox = 8; % should be even for symmetrical edge propagation
 
     if ~all(isfinite(input_image(:)))
         warning('There are Inf/NaN values in input data!');
