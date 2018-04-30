@@ -1,6 +1,6 @@
 function mask = stableMask(weight)
         % TODO remove too high values
-        threshold = 0.25;
+        threshold = 0.15;
 %                 weight = sum(weight, 5);
         % TODO slicewise for 3d
         mean_mask = weight >= mean(weight(:));

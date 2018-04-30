@@ -28,10 +28,12 @@ classdef  BoxSegmenter < handle
         function wm_mask = threshold(image, mask)
             masked = image(mask);
             m = mean(masked);
-            m = mean(masked(masked > m));
+            m = mean(masked(masked > m & masked < 2 * m));
+            % TODO could be improved by removing linear intensity variation
             
             wm_mask = mask;
             wm_mask(image < 0.9 * m) = 0;
+            wm_mask(image > 1.5 * m) = 0;
         end
     end
     

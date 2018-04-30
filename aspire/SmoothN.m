@@ -8,7 +8,7 @@ classdef SmoothN < Smoother
     methods
         % implement
         function smoothed = smoothImplementation(self, input, weight, factor)
-            s = 2000; % confirmed with visual test
+            s = 5000; % confirmed with visual test
             d = 1 ./ (self.sigmaInVoxel * factor);
             
             OPTIONS.TolZ = 0.01;

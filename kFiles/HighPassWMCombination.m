@@ -16,30 +16,40 @@ classdef HighPassWMCombination < RootSumOfSquares
 
 
         function combined = combine(self, image, sens)
+            numIterativeSteps = 3;
+            
             combined = combine@RootSumOfSquares(abs(image), []);
             self.storage.write(combined, 'rsos');
             
-            lowPass = self.smoother.smooth(combined, combined);
-            self.storage.write(lowPass, 'lowPass');
-            
-            hp_combined = combined ./ lowPass;
-            self.storage.write(hp_combined, 'hp_combined');
             
             mask = stableMask(combined);
             self.storage.write(mask, 'stableMask');
             
-            wm_mask = BoxSegmenter.segment(combined, ~mask);
-            wm = hp_combined;
-            wm(~wm_mask) = NaN;
-            wm(wm > 2) = 2;
-            self.storage.write(wm, 'wm');
+            lowPass = self.smoother.smooth(combined, combined);
+            self.storage.write(lowPass, 'lowPass');
             
-            lowPass = self.smoother.smooth(wm, combined);
-            self.storage.write(lowPass, 'lowPassWM');
+%             hp_combined = combined;
+%             inhomogeneity = lowPass;
+            for i = 1:numIterativeSteps
+                hp_combined = combined ./ lowPass;
+                self.storage.write(hp_combined, sprintf('hp_combined_%d', i));
+    
+                wm_mask = BoxSegmenter.segment(hp_combined, ~mask);
+                wm = combined;
+                wm(~wm_mask) = NaN;
+%                 wm(wm > 2) = 2;
+                self.storage.write(wm, sprintf('wm_%d', i));
+
+                lowPass = self.smoother.smooth(wm, combined);
+                self.storage.write(lowPass, sprintf('lowPassWM_%d', i));
+                
+%                 inhomogeneity = inhomogeneity .* lowPass;
+%                 self.storage.write(inhomogeneity, sprintf('inhomogeneity_%d', i));
+            end
+            
+            % TODO: smooth inhomogeneity?
+            
             combined = combined ./ lowPass;
-            
-            % TODO: make iterative loop
-            
         end
     end
     
