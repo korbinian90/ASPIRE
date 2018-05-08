@@ -100,12 +100,17 @@ classdef FlexibleStorage < handle
         end
         
         function compl = getComplex(self, fnMag, fnPhase)
-            compl = single(1i * self.getPhase(fnPhase));
-            compl = exp(compl);
-            if ~isempty(fnMag)
-                compl = self.getMag(fnMag) .* compl;
+            if ~isempty(fnPhase)
+                compl = single(1i * self.getPhase(fnPhase));
+                compl = exp(compl);
+                if ~isempty(fnMag)
+                    compl = self.getMag(fnMag) .* compl;
+                else
+                    warning('No Magnitude is used');
+                end
             else
-                warning('No Magnitude is used');
+                warning('No Phase is used');
+                compl = self.getMag(fnMag); 
             end
         end
         
@@ -128,7 +133,7 @@ classdef FlexibleStorage < handle
                 else
                     nii = load_nii(filename, self.channels);
                 end
-                image = reshape(nii.img, size(nii.img, 1), size(nii.img, 2), size(nii.img, 3), 1, size(nii.img, 4));
+                image = reshape(single(nii.img), size(nii.img, 1), size(nii.img, 2), size(nii.img, 3), 1, size(nii.img, 4));
             else
                 if self.slicewise
                     nii = load_nii_slice(filename, self.slice, self.echoes, self.channels);

@@ -46,8 +46,9 @@ classdef Aspire < handle
                 iSlice = self.data.slices(i);
                 %% Main Steps
                 [combined, weight] = self.combine(iSlice);
-                self.unwrap(combined);
-                self.swi(combined, weight, iSlice);
+                unwrapped = self.unwrap(combined);
+                combined = self.magnitudeCorrection(combined);
+                self.swi(combined, unwrapped, weight, iSlice); 
             end
             
             %% POSTPROCESSING
@@ -130,7 +131,7 @@ classdef Aspire < handle
         end
         
         
-        function unwrap(self, combined, iSlice)
+        function unwrapped = unwrap(self, combined, iSlice)
             if ~strcmp(self.data.unwrapping_method, 'none')
                 %% unwrap combined phase
                 self.log('Unwrapping...');
@@ -139,12 +140,24 @@ classdef Aspire < handle
                 saveStruct(self.data, iSlice, 'unwrappingSteps', unwrappingSteps);
                 self.storage.setSubdir('results');
                 self.storage.write(unwrapped, 'unwrapped');
+            else
+                unwrapped = [];
             end
         end
         
         
-        function swi(self, combined, weight, iSlice)
+        function combined = magnitudeCorrection(self, combined)
+            if isfield(self.data, 'magnitudeCorrection')
+                magCorrection = self.data.magnitudeCorrection;
+                magCorrection.setup(self.data);
+                combined = magCorrection.filter(combined);
+            end
+        end
+        
+        
+        function swi(self, combined, unwrapped, weight, iSlice)
             %% SWI
+            % TODO: check if unwrapped exists!
             if ~isempty(self.swiCalculator)
                 self.log('Calculating SWI...');
                 self.swiCalculator.setSlice(iSlice);

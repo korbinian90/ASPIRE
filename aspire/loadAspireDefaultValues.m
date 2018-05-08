@@ -3,6 +3,7 @@ function data = loadAspireDefaultValues(user_data)
     %% dafault configuration for combination program
 
     data.filename_mag = '';
+    data.filename_phase = '';
     data.rpo_weigthedSmoothing = 0;
     data.aspire_echoes = [1 2];
     data.mcpc3d_echoes = [1 2];

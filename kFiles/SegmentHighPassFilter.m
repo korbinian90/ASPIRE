@@ -1,27 +1,22 @@
-classdef HighPassWMCombination < RootSumOfSquares
+classdef SegmentHighPassFilter < BaseClass
     %LOWPASSCOMBINATION Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
-        smoother
-    end
-    
     methods
-	%override
-	function setup(self, data)
-            setup@Combination(self, data);
+        %override
+        function setup(self, data)
+            self.setup@BaseClass(data);
+            self.storage.setSubdir('highPassFilter');
             self.smoother = SmoothN;
             self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d, self.storage);
         end
 
 
-        function combined = combine(self, image, sens)
+        function filtered = filter(self, combined)
             numIterativeSteps = 3;
+            self.storage.write(abs(combined), 'rsos');
             
-            combined = combine@RootSumOfSquares(abs(image), []);
-            self.storage.write(combined, 'rsos');
-            
-            firstEcho = combined(:,:,:,1);
+            firstEcho = abs(combined(:,:,:,1));
             
             mask = stableMask(firstEcho);
             self.storage.write(mask, 'stableMask');
@@ -49,9 +44,14 @@ classdef HighPassWMCombination < RootSumOfSquares
             end
             
             % TODO: smooth inhomogeneity?
+            filtered = zeros(size(combined));
             for iEcho = 1:size(firstEcho, 4)
-                combined(:,:,:,iEcho) = combined(:,:,:,iEcho) ./ lowPass;
+                filtered(:,:,:,iEcho) = combined(:,:,:,iEcho) ./ lowPass;
             end
+            
+            self.storage.setSubdir('results');
+            self.storage.write(filtered, 'filtered_mag');
+            self.storage.setSubdir('highPassFilter');
         end
     end
     

@@ -1,14 +1,24 @@
 function [ data ] = getHeaderInfo( data )
 %GETHEADERINFO gets important information from nifti header
 %   Detailed explanation goes here
-    
-    phaseData = fromNiiHeader(data.filename_phase);
+
+    if isfield(data, 'filename_phase')
+        phaseData = fromNiiHeader(data.filename_phase);
+    end
     
     if isfield(data, 'filename_mag')
         magData = fromNiiHeader(data.filename_mag);
-        if ~isequal(phaseData, magData)
-            warning('Magnitude and phase have different Header info!');
+    end
+    
+    if exist('phaseData', 'var') && exist('magData', 'var') && ~isequal(phaseData, magData)
+        warning('Magnitude and phase have different Header info!');
+    end
+    
+    if ~exist('phaseData', 'var')
+        if ~exist('magData', 'var')
+            error('Either filename_phase or filename_mag required for input images!');
         end
+        phaseData = magData;
     end
     
     % Output variables
