@@ -1,18 +1,23 @@
 classdef AspireBipolarPoCalculator < AspirePoCalculator
-%% USES ECHOES 1, 2, 4
 
 properties
     po2
     doNonLinearCorrection
+    readoutDimension
 end
 
 methods
     function obj = AspireBipolarPoCalculator(varargin)
-        if nargin == 1 && strcmp(varargin{1}, 'non-linear correction')
+        if nargin >= 1 && strcmp(varargin{1}, 'non-linear correction')
             obj.doNonLinearCorrection = 1;
         else
             obj.doNonLinearCorrection = 0;
-        end 
+        end
+        if nargin >= 2
+            obj.readoutDimension = varargin{2};
+        else
+            obj.readoutDimension = 1;
+        end
     end
     
     % override
@@ -61,19 +66,37 @@ methods
             self.po2(:,:,:,iCha) = self.po2(:,:,:,iCha) .* term;
         end
     end
-    
+
     function readoutGradient = getReadoutGradientDivBy(self, gradient4, div, nChannels)
+        
+        readoutGradient = self.getGradient(gradient4, div);
+        
+        offsetAngle = self.getConstantOffset(readoutGradient, gradient4);
+        readoutGradient = readoutGradient * exp(1i * offsetAngle);
+        
+        if self.doNonLinearCorrection
+            readoutGradient = self.nonLinearCorrection(readoutGradient, gradient4);
+        end
+        
+        readoutGradient = repmat(readoutGradient, [1 1 1 1 nChannels]);
+    end
+    
+    function readoutGradient = getGradient(self, gradient4, div)
+        readoutDim = self.readoutDimension;
         self.storage.write(gradient4, 'gradient4');
 
         sizeArr = size(gradient4);
         shift = 10;
-        diffMap = self.normalize(gradient4((1+shift):end,:,:,:) .* conj(gradient4(1:(end-shift),:,:,:)));
+        if readoutDim == 1
+            diffMap = self.normalize(gradient4((1+shift):end,:,:,:) .* conj(gradient4(1:(end-shift),:,:,:)));
+        elseif readoutDim == 2
+            diffMap = self.normalize(gradient4(:,(1+shift):end,:,:) .* conj(gradient4(:,1:(end-shift),:,:)));
+        end
         self.storage.write(diffMap, 'diffMap');
 
         diff = sum(diffMap(:));
         gradient = angle(diff) / div / shift;
 
-        readoutDim = 1;
         rMin = -sizeArr(readoutDim)/2;
         rValues = rMin:(rMin + sizeArr(readoutDim) - 1);
         
@@ -83,14 +106,12 @@ methods
         readoutGradient = reshape(readoutGradient, sizeArr);
         readoutGradient = exp(1i * readoutGradient);
         self.storage.write(readoutGradient, 'readoutGradient');
-        
-        if self.doNonLinearCorrection
-            readoutGradient = self.nonLinearCorrection(readoutGradient, gradient4);
-        end
-        
-        readoutGradient = repmat(readoutGradient, [1 1 1 nChannels]);
     end
     
+    function offset = getConstantOffset(~, readoutGradient, gradient4)
+        diff = gradient4 .* conj(readoutGradient);
+        offset = angle(sum(diff(:)));
+    end
     
     function readoutGradient = nonLinearCorrection(self, readoutGradient, gradient4)
         residual = gradient4 .* conj(readoutGradient) .* conj(readoutGradient);

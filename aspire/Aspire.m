@@ -8,6 +8,7 @@ classdef Aspire < handle
         poCalculator
         swiCalculator
         storage
+        postProcessing
     end
     
     methods
@@ -16,8 +17,10 @@ classdef Aspire < handle
             obj.setupFolder(user_data); % stops with error, if no permission
             user_data = getHeaderInfo(user_data);
             obj.data = obj.getDefault(user_data);
-            obj.swiCalculator = obj.data.swiCalculator;
             obj.data = checkForWrongOptions(obj.data);
+            obj.saveConfig(obj.data);
+            
+            obj.swiCalculator = obj.data.swiCalculator;
 
             if strcmpi(obj.data.processing_option, 'all_at_once')
                 obj.sliceLoop = 1;
@@ -36,19 +39,34 @@ classdef Aspire < handle
             if ~isempty(obj.swiCalculator)
                 obj.swiCalculator.setup(obj.data);
             end
+            
+            if isfield(obj.data, 'bipolarCorrection')
+                obj.postProcessing.bipolarCorrection = obj.data.bipolarCorrection;
+                obj.postProcessing.bipolarCorrection.setup(obj.data);
+            end
+            
         end
          
         
         function run(self)
             tic;
             
+            
             for i = 1:self.sliceLoop
                 iSlice = self.data.slices(i);
                 %% Main Steps
                 [combined, weight] = self.combine(iSlice);
+                if isfield(self.data, 'bipolarCorrection')
+                    combined = self.postProcessing.bipolarCorrection.apply(combined);
+                end
                 unwrapped = self.unwrap(combined);
                 combined = self.magnitudeCorrection(combined);
-                self.swi(combined, unwrapped, weight, iSlice); 
+                self.swi(combined, unwrapped, weight, iSlice);
+                
+                %% write results
+                self.storage.setSubdir('results');
+                self.storage.write(angle(combined), 'combined_phase');
+                self.storage.write(abs(combined), 'combined_mag');
             end
             
             %% POSTPROCESSING
@@ -123,11 +141,6 @@ classdef Aspire < handle
             %% ratio
             ratio = calcRatio(self.data.n_echoes, combined, compl, self.data.weightedCombination);
             self.storage.write(ratio, 'ratio');
-            
-            %% write results
-            self.storage.setSubdir('results');
-            self.storage.write(angle(combined), 'combined_phase');
-            self.storage.write(abs(combined), 'combined_mag');
         end
         
         
@@ -292,6 +305,10 @@ classdef Aspire < handle
                 % make headers right
                 centre_hdr_nii(filename);
 
+        end
+        
+        function saveConfig(data) 
+            %save(fullfile(data.write_dir, 'config_data.m'), data);
         end
     end
 end
