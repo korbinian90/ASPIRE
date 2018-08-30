@@ -5,7 +5,7 @@ function complSens = edgeFill(complSens, kernelSize)
     for it = 1:2
         for iSlice = 1:size(complSens, 3)
             for iLine = 1:size(complSens, 2)
-                [v, line] = calculateLine(valid(:,iLine,iSlice), complSens(:,iLine,iSlice,1,:), kernelSize);
+                [v, line] = calculateLine(valid(:,iLine,iSlice), complSens(:,iLine,iSlice,1,:), kernelSize(it));
                 complSens(:,iLine,iSlice,1,:) = line;
                 valid(:,iLine,iSlice) = v;
             end

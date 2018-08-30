@@ -46,15 +46,18 @@ methods
     end
     
     function bipolarOffset2 = getOffsetCorrection(self, compl)
+        % linear correction
         diff21 = PoCalculator.normalize(compl(:,:,:,2) .* conj(compl(:,:,:,1)));
         diff32 = PoCalculator.normalize(compl(:,:,:,3) .* conj(compl(:,:,:,2)));
         gradient4 = PoCalculator.normalize(diff21 .* conj(diff32));
         
         bipolarOffset2 = self.getGradient(gradient4, 2);
         
-        offsetAngle = self.getConstantOffset(bipolarOffset2, gradient4);
-        bipolarOffset2 = bipolarOffset2 * exp(1i * offsetAngle);
+        % constant correction
+        offsetAngle2 = self.getConstantOffset(bipolarOffset2, gradient4);
+        bipolarOffset2 = bipolarOffset2 * exp(1i * offsetAngle2);
         
+        % non-linear correction
         if self.doNonLinearCorrection
             bipolarOffset2 = self.nonLinearCorrection(bipolarOffset2, gradient4);
         end
@@ -67,13 +70,13 @@ methods
         sizeArr = size(gradient4);
         shift = 10;
         if readoutDim == 1
-            diffMap = PoCalculator.normalize(gradient4((1+shift):end,:,:,:) .* conj(gradient4(1:(end-shift),:,:,:)));
+            diffMap4 = PoCalculator.normalize(gradient4((1+shift):end,:,:,:) .* conj(gradient4(1:(end-shift),:,:,:)));
         elseif readoutDim == 2
-            diffMap = PoCalculator.normalize(gradient4(:,(1+shift):end,:,:) .* conj(gradient4(:,1:(end-shift),:,:)));
+            diffMap4 = PoCalculator.normalize(gradient4(:,(1+shift):end,:,:) .* conj(gradient4(:,1:(end-shift),:,:)));
         end
-        self.storage.write(diffMap, 'diffMap');
+        self.storage.write(diffMap4, 'diffMap');
 
-        diff = sum(diffMap(:));
+        diff = sum(diffMap4(:));
         gradient = angle(diff) / div / shift;
 
         rMin = -sizeArr(readoutDim)/2;
@@ -87,23 +90,23 @@ methods
         self.storage.write(readoutGradient, 'readoutGradient');
     end
     
-    function offset = getConstantOffset(~, readoutGradient, gradient4)
-        diff = gradient4 .* conj(readoutGradient);
-        offset = angle(sum(diff(:)));
+    function offset2 = getConstantOffset(~, readoutGradient2, gradient4)
+        diff4 = gradient4 .* conj(readoutGradient2) .* conj(readoutGradient2);
+        offset2 = angle(sum(diff4(:))) / 2;
     end
     
-    function readoutGradient = nonLinearCorrection(self, readoutGradient, gradient4)
-        residual = gradient4 .* conj(readoutGradient) .* conj(readoutGradient);
-        self.storage.write(residual, 'residual');
+    function readoutGradient2 = nonLinearCorrection(self, readoutGradient2, gradient4)
+        residual4 = gradient4 .* conj(readoutGradient2) .* conj(readoutGradient2);
+        self.storage.write(residual4, 'residual');
         
         % TODO: is greater smoothing than for other PO required?
 %         residual = self.smoother.smooth(residual, ones(size(residual)), 1.5);
 %         self.storage.write(residual, 'smooth_residual');
         
-        residual = angle(residual) / 2;
-        readoutGradient = angle(readoutGradient);
-        readoutGradient = exp(1i * (readoutGradient + residual));
-        self.storage.write(readoutGradient, 'corrected_readoutGradient');
+        residual2 = angle(residual4) / 2;
+        readoutGradient2 = angle(readoutGradient2);
+        readoutGradient2 = exp(1i * (readoutGradient2 + residual2));
+        self.storage.write(readoutGradient2, 'corrected_readoutGradient');
     end
 end
     

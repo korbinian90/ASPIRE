@@ -8,8 +8,11 @@ classdef SmoothN < Smoother
     methods
         % implement
         function smoothed = smoothImplementation(self, input, weight, factor)
-            s = 1 * min(self.sigmaInVoxel); % confirmed with visual test
-            d = 1 ./ (self.sigmaInVoxel * factor);
+            %meanInput = nanmean(input(input > nanmean(input(:))));
+            input = input - meanInput;
+            
+            s = factor * min(self.sigmaInVoxel); % confirmed with visual test
+            d = 1 ./ (self.sigmaInVoxel);
             
             OPTIONS.TolZ = 0.01;
             
@@ -31,7 +34,7 @@ classdef SmoothN < Smoother
                     end
                 end
             end
-               
+            %smoothed = smoothed + meanInput;
         end
 
     end

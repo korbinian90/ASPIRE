@@ -117,9 +117,10 @@ methods
         residual = gradient4 .* conj(readoutGradient) .* conj(readoutGradient);
         self.storage.write(residual, 'residual');
         
-        % TODO: is greater smoothing than for other PO required?
-%         residual = self.smoother.smooth(residual, ones(size(residual)), 1.5);
-%         self.storage.write(residual, 'smooth_residual');
+        % greater smoothing than for other PO required, otherwise bad phase
+        % combination
+        residual = self.smoother.smooth(residual, ones(size(residual)), 3);
+        self.storage.write(residual, 'smooth_residual');
         
         residual = angle(residual) / 2;
         readoutGradient = angle(readoutGradient);

@@ -83,10 +83,14 @@ methods (Static)
         
         hip = calculateHip(compl, aspireEchoes);
         
+        if nargin == 4
+            storage.write(hip, 'hip');
+        end
+        
         if nargin == 3
             hip = hip .^ m;
         end
-
+        
         po = AspirePoCalculator.subtractFromEcho(compl, hip, aspireEchoes(1));
     end
 end

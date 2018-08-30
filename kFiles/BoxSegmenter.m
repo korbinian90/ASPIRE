@@ -4,9 +4,12 @@ classdef  BoxSegmenter < handle
     end
     
     methods (Static)
-        function wm_mask = segment(image, mask)
+        function wm_mask = segment(image, mask, nBoxes)
+            if (nargin == 2)
+                nBoxes = 15;
+            end
             N = [size(image, 1) size(image, 2) size(image, 3)];
-            boxSize = round(N / 15);
+            boxSize = round(N / nBoxes);
             halfBoxSize = round(boxSize / 2);
             wm_mask = mask;
             

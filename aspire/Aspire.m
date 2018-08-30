@@ -112,10 +112,10 @@ classdef Aspire < handle
             poCalc.calculatePo(compl);
             poCalc.setSens(compl);
 
-            self.storage.write(poCalc.po, 'poBeforeSmooth');
-            self.storage.write(abs(poCalc.po), 'sensBeforeSmooth');
-            self.storage.write(real(poCalc.po), 'realBeforeSmooth');
-            self.storage.write(imag(poCalc.po), 'imagBeforeSmooth');
+            self.storage.write(poCalc.po, 'poBeforeSmooth', self.data.write_channels_po);
+            self.storage.write(abs(poCalc.po), 'sensBeforeSmooth', self.data.write_channels_po);
+            self.storage.write(real(poCalc.po), 'realBeforeSmooth', self.data.write_channels_po);
+            self.storage.write(imag(poCalc.po), 'imagBeforeSmooth', self.data.write_channels_po);
             
             self.log('Smoothing phase offsets / sensitivities...');
             weight = abs(compl(:,:,:,min(end, 2),:));

@@ -62,7 +62,9 @@ methods
         if isempty(self.po)
             self.po = ones(size(compl, 1), size(compl, 2), size(compl, 3), 1, size(compl,5));
         end
-        self.po = exp(1i * angle(self.po)) .* abs(compl(:,:,:,1,:));
+        for iCha = 1:size(self.po, 4) % for RAM saving
+            self.po(:,:,:,1,iCha) = exp(1i * angle(self.po(:,:,:,1,iCha))) .* abs(compl(:,:,:,1,iCha));
+        end
     end
     
     function sens = getSens(self)

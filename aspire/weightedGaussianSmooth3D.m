@@ -12,7 +12,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
     end
     
     dimension = size(input_image);
-    if isempty(varargin)
+    if isempty(varargin) || isempty(varargin{1})
         weighting_image = ones(dimension);
     else
         weighting_image = abs(varargin{1});

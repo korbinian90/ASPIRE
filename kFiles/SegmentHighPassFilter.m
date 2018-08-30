@@ -7,7 +7,7 @@ classdef SegmentHighPassFilter < BaseClass
         function setup(self, data)
             self.setup@BaseClass(data);
             self.storage.setSubdir('highPassFilter');
-            self.smoother = SmoothN;
+            self.smoother = NanGaussianSmoother;
             self.smoother.setup(data.smoothingSigmaSizeInVoxel, data.weighted_smoothing, data.smooth3d, self.storage);
         end
 
@@ -21,23 +21,23 @@ classdef SegmentHighPassFilter < BaseClass
             mask = stableMask(firstEcho);
             self.storage.write(mask, 'stableMask');
             
-            lowPass = self.smoother.smooth(firstEcho, firstEcho);
+            lowPass = self.smoother.smooth(firstEcho, firstEcho, 5);
             self.storage.write(lowPass, 'lowPass');
             
 %             hp_combined = combined;
 %             inhomogeneity = lowPass;
-            for i = 1:numIterativeSteps
+            for iStep = 1:numIterativeSteps
                 hp_combined = firstEcho ./ lowPass;
-                self.storage.write(hp_combined, sprintf('hp_combined_%d', i));
+                self.storage.write(hp_combined, sprintf('hp_combined_%d', iStep));
     
-                wm_mask = BoxSegmenter.segment(hp_combined, ~mask);
+                wm_mask = BoxSegmenter.segment(hp_combined, ~mask, 15 + 10 * (iStep - 1)); % try to increase box size
                 wm = firstEcho;
                 wm(~wm_mask) = NaN;
 %                 wm(wm > 2) = 2;
-                self.storage.write(wm, sprintf('wm_%d', i));
+                self.storage.write(wm, sprintf('wm_%d', iStep));
 
-                lowPass = self.smoother.smooth(wm, firstEcho);
-                self.storage.write(lowPass, sprintf('lowPassWM_%d', i));
+                lowPass = self.smoother.smooth(wm, firstEcho, 5 * iStep); % try to increase sigma
+                self.storage.write(lowPass, sprintf('lowPassWM_%d', iStep));
                 
 %                 inhomogeneity = inhomogeneity .* lowPass;
 %                 self.storage.write(inhomogeneity, sprintf('inhomogeneity_%d', i));

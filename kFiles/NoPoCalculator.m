@@ -7,8 +7,8 @@ classdef NoPoCalculator < PoCalculator
     
     methods
         % implement
-        function po = calculatePo(self, compl)
-            po = ones(size(compl));
+        function calculatePo(self, compl)
+            self.po = ones(size(compl), 'single');
         end
         
         % override
