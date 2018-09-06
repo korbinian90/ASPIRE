@@ -4,7 +4,7 @@ function smoothed_image = nanGaussianSmooth3d(input_image, sigma, mask)
 %   The execution time is independent on kernel size
 
     % number of box filterings
-    nBox = 8; % should be even for symmetrical edge propagation
+    nBox = 4; % should be even for symmetrical edge propagation
 
     if ~all(isfinite(input_image(:)))
         warning('There are Inf/NaN values in input data!');
@@ -24,7 +24,7 @@ function smoothed_image = nanGaussianSmooth3d(input_image, sigma, mask)
     end
     
     % TODO: dim-dependent box sizes
-    boxSizes = getBoxSizes(sigma, nBox);
+    boxSizes = getBoxSizesIncreasing(sigma, nBox, 5);
     for iBox = 1:nBox
         for dimension = 1:3
             switchDirection = mod(iBox, 2);

@@ -9,7 +9,7 @@ classdef SmoothN < Smoother
         % implement
         function smoothed = smoothImplementation(self, input, weight, factor)
             %meanInput = nanmean(input(input > nanmean(input(:))));
-            input = input - meanInput;
+            %input = input - meanInput;
             
             s = factor * min(self.sigmaInVoxel); % confirmed with visual test
             d = 1 ./ (self.sigmaInVoxel);

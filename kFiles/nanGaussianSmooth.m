@@ -6,8 +6,8 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
     % number of box filterings
     n_box = 4;
 
-    if ~all(isfinite(input_image(:)))
-        warning('There are Inf/NaN values in input data!');
+    if all(isfinite(input_image(:)))
+        warning('NanGaussianSmoother: There are no Inf/NaN values in input data!');
     end
     
     dimension = size(input_image);
@@ -22,7 +22,7 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
     if isempty(slice_loop)
         slice_loop = 1;
     end
-    boxSizes = getBoxSizes(sigma, n_box);
+    boxSizes = getBoxSizesIncreasing(sigma, n_box, 10);
     for iSlice = 1:slice_loop
             repMask = repmat(mask(:,:,iSlice), [1 1 size(input_image, 5)]);
             slice_image = squeeze(smoothed_image(:,:,iSlice,:));
@@ -31,7 +31,7 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
             
             slice_image = permute(flipdim(slice_image, 1), [2 1 3]); % rot90
             
-            for iLine = 1:size(slice_image, 2);
+            for iLine = 1:size(slice_image, 2)
                 % box filter with 6 times transposing image -> 3 times horizontal and 3
                 % times vertical filtered
                 s_image = double(squeeze(slice_image(:,iLine,:)));

@@ -20,8 +20,9 @@ classdef SegmentHighPassFilter < BaseClass
             
             mask = stableMask(firstEcho);
             self.storage.write(mask, 'stableMask');
+            stableMean = mean(firstEcho(~mask));
             
-            lowPass = self.smoother.smooth(firstEcho, firstEcho, 5);
+            lowPass = self.smoother.smooth(firstEcho, firstEcho, 1);
             self.storage.write(lowPass, 'lowPass');
             
 %             hp_combined = combined;
@@ -36,14 +37,23 @@ classdef SegmentHighPassFilter < BaseClass
 %                 wm(wm > 2) = 2;
                 self.storage.write(wm, sprintf('wm_%d', iStep));
 
-                lowPass = self.smoother.smooth(wm, firstEcho, 5 * iStep); % try to increase sigma
+                lowPass = self.smoother.smooth(wm, firstEcho); % try to increase sigma
                 self.storage.write(lowPass, sprintf('lowPassWM_%d', iStep));
                 
 %                 inhomogeneity = inhomogeneity .* lowPass;
 %                 self.storage.write(inhomogeneity, sprintf('inhomogeneity_%d', i));
+                    % TODO: smooth inhomogeneity?
             end
             
-            % TODO: smooth inhomogeneity?
+            stableThresh = stableMean / 2;
+            lowPass(lowPass < 0) = 0;
+            lowPass(lowPass < stableThresh & lowPass ~= 0) = 2 * stableThresh - lowPass(lowPass < stableThresh & lowPass ~= 0);
+%             for iSlice = 1:size(mask, 3)
+%                 mask(:,:,iSlice) = imdilate(mask(:,:,iSlice), strel('square',3));
+%                 mask(:,:,iSlice) = imerode(mask(:,:,iSlice), strel('disk',10));
+%             end
+            %lowPass(mask) = stableMean;
+            self.storage.write(lowPass, 'lowPassWM_Thresh');
             filtered = zeros(size(combined));
             for iEcho = 1:size(firstEcho, 4)
                 filtered(:,:,:,iEcho) = combined(:,:,:,iEcho) ./ lowPass;
