@@ -26,7 +26,7 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
     for iSlice = 1:slice_loop
             repMask = repmat(mask(:,:,iSlice), [1 1 size(input_image, 5)]);
             slice_image = squeeze(smoothed_image(:,:,iSlice,:));
-            slice_image(repMask) = NaN;
+            slice_image(~repMask) = NaN;
         for i = 1:2*n_box
             
             slice_image = permute(flipdim(slice_image, 1), [2 1 3]); % rot90

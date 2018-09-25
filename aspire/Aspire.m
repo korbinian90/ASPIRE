@@ -59,14 +59,16 @@ classdef Aspire < handle
                 if isfield(self.data, 'bipolarCorrection')
                     combined = self.postProcessing.bipolarCorrection.apply(combined);
                 end
-                unwrapped = self.unwrap(combined);
-                combined = self.magnitudeCorrection(combined);
-                self.swi(combined, unwrapped, weight, iSlice);
                 
                 %% write results
                 self.storage.setSubdir('results');
                 self.storage.write(angle(combined), 'combined_phase');
                 self.storage.write(abs(combined), 'combined_mag');
+                
+                unwrapped = self.unwrap(combined);
+                combined = self.magnitudeCorrection(combined);
+                self.swi(combined, unwrapped, weight, iSlice);
+                
             end
             
             %% POSTPROCESSING

@@ -1,5 +1,6 @@
 function boxSizes = getBoxSizes(sigma, n)
-
+    % algorithm from https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
+    
     wIdeal = sqrt((12 * sigma .^ 2 / n) + 1);
     
     wl = floor(wIdeal);

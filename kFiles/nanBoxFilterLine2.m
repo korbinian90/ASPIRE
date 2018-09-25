@@ -6,6 +6,10 @@ function output_line = nanBoxFilterLine2(line, boxSize)
     % strictly positive (ensured in calling function
     % weightedGaussianSmooth)
 
+    if boxSize < 3
+        boxSize = 3;
+    end
+    
     if mod(boxSize, 2) == 0
         warning('boxSize is even!')
         warning('Changed to next smaller odd integer')

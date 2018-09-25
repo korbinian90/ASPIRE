@@ -40,7 +40,7 @@ function [ smoothed_image, smoothed_weight ] = weightedGaussianSmooth3D( input_i
     end
     
     boxSizes = getBoxSizes(sigma, n_box);
-    parfor vol = 1:vol_loop
+    for vol = 1:vol_loop
         % box filter with 3*n_box runs
         s_image = double(smoothed_image(:,:,:,vol));
         s_weight = double(smoothed_weight(:,:,:,vol));

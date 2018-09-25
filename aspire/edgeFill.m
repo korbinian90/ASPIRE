@@ -1,8 +1,8 @@
-function complSens = edgeFill(complSens, kernelSize)
+function complSens = edgeFill(complSens, valid, kernelSize)
     kernelSize = ceil(kernelSize);
-    valid = getObjectArea(sum(abs(complSens), 5));
+%     valid = getObjectArea(sum(abs(complSens), 5));
     
-    for it = 1:2
+    for it = 1:3
         for iSlice = 1:size(complSens, 3)
             for iLine = 1:size(complSens, 2)
                 [v, line] = calculateLine(valid(:,iLine,iSlice), complSens(:,iLine,iSlice,1,:), kernelSize(it));
@@ -10,8 +10,8 @@ function complSens = edgeFill(complSens, kernelSize)
                 valid(:,iLine,iSlice) = v;
             end
         end
-        complSens = permute(complSens, [2 1 3 4 5]);
-        valid = permute(valid, [2 1 3]);
+        complSens = permute(complSens, [2 3 1 4 5]);
+        valid = permute(valid, [2 3 1]);
     end
 end
 
@@ -42,28 +42,36 @@ function [valid, line] = calculateLine(valid, line, kernelSize)
                     end
                     nSteps = min(nSteps, count);
                     
-%                     line(i+1:i+nSteps,:) = extrapolate(line(i-2*radius+1:i,:), radius, nSteps);
-                    line(i:i+nSteps,:) = extrapolate(line(i-2*radius:i-1,:), radius, nSteps + 1);
+                    line(i+1:i+nSteps,:) = extrapolate(line(i-2*radius:i,:), radius, nSteps);
+%                     line(i:i+nSteps,:) = extrapolate(line(i-2*radius:i-1,:), radius, nSteps + 1);
                     valid(i+1:i+nSteps,:) = true;
                     validPoints = 0;
                     i = i + nSteps + 1;
                 end
+            else
+                validPoints = 0;
             end
         end
     end
 end
 
 function points = extrapolate(line, radius, nSteps)
-    lengthLine = size(line, 1);
-    
-    lSum = sum(line(2:end,:));
-    points = [line; zeros(nSteps, size(line, 2))];
-    for iP = lengthLine+1:lengthLine+nSteps
-        points(iP,:) = (2 / (lengthLine - 1)) * lSum - points(iP-lengthLine,:);
-        lSum = lSum - line(iP-lengthLine+1,:) + points(iP,:);
-    end
-    points = points(end-nSteps+1:end,:);
+    pivot = sum(line(end-1:end), 1) / 2;
+    points = 2 * pivot - line(end:-1:size(line, 1) - nSteps + 1);
 end
+
+% 
+% function points = extrapolate(line, radius, nSteps)
+%     lengthLine = size(line, 1);
+%     
+%     lSum = sum(line(2:end,:));
+%     points = [line; zeros(nSteps, size(line, 2))];
+%     for iP = lengthLine+1:lengthLine+nSteps
+%         points(iP,:) = (2 / (lengthLine - 1)) * lSum - points(iP-lengthLine,:);
+%         lSum = lSum - line(iP-lengthLine+1,:) + points(iP,:);
+%     end
+%     points = points(end-nSteps+1:end,:);
+% end
 
 %
 % function points = extrapolate(line, radius, nSteps)
