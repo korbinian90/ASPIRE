@@ -72,7 +72,7 @@ classdef Aspire < handle
             end
             
             %% POSTPROCESSING
-            if strcmpi(self.data.processing_option, 'slice_by_slice')
+            if strcmpi(self.data.processing_option, 'slice_by_slice') && self.data.parallel
                 self.concatImagesInSubdirs(self.data);
             end
             disp(['Results written to ' self.data.write_dir '/results'])
