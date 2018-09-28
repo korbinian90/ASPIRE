@@ -1,2 +1,3 @@
-folders = {'aspire', 'dependencies', 'kFiles'};
-addpath(genpath(fileparts(mfilename('fullpath'))));
+directory = fileparts(mfilename('fullpath'));
+subfolders = {'aspire', 'dependencies', 'kFiles', 'testFileDir'};
+addpath(strjoin(fullfile(directory, subfolders), ';'));
