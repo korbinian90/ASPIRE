@@ -7,7 +7,8 @@ function output_line = nanBoxFilterLine2(line, boxSize)
     % weightedGaussianSmooth)
 
     if boxSize < 3
-        boxSize = 3;
+        output_line = line;
+        return
     end
     
     if mod(boxSize, 2) == 0

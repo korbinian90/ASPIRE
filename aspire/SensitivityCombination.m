@@ -18,7 +18,6 @@ classdef SensitivityCombination < Combination
 
             for iChannel = 1:dimension(5)
                 sensWeight = sensWeight + sens(:,:,:,1,iChannel) .^ 2;
-%                 combined = combined + image(:,:,:,:,iChannel) .* repmat(sens(:,:,:,1,iChannel), [1 1 1 size(combined, 4)]);
                 combined = combined + image(:,:,:,:,iChannel) .* sens(:,:,:,1,iChannel);
             end
             

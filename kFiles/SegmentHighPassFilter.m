@@ -23,7 +23,6 @@ classdef SegmentHighPassFilter < BaseClass
             smoothingFactor = sqrt(1 - lastStepSmoothingFactor^2);
             
             numIterativeSteps = 3;
-            self.storage.write(abs(combined), 'rsos');
             
             firstEcho = abs(combined(:,:,:,1));
             
