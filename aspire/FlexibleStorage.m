@@ -48,7 +48,9 @@ classdef FlexibleStorage < handle
         
         function write(self, image, name, channels)
             if self.path
-                
+                if islogical(image)
+                    image = 1 * image;
+                end
                 if nargin <= 3
                     channels = 1:length(self.channels);
                 end
