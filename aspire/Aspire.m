@@ -141,7 +141,8 @@ classdef Aspire < handle
             self.storage.write(poCalc.po, 'po', self.data.write_channels_po);
 
             %% ratio
-            ratio = calcRatio(self.data.n_echoes, combined, compl, self.data.weightedCombination);
+            magCombine = self.data.combination.combine(abs(compl), poCalc.getSens());
+            ratio = abs(combined) ./ magCombine;
             self.storage.write(ratio, 'ratio');
         end
         
