@@ -20,14 +20,16 @@ classdef Smoother < handle
         end
         
         function smoothed = smooth(self, smoothed, weight, varargin)
-            factor = 1;
-            if nargin == 4
-                factor = varargin{1};
-            end
-            
-            nChannels = size(smoothed, 4);
-            for iCha = 1:nChannels
-                    smoothed(:,:,:,iCha) = self.smoothImplementation(smoothed(:,:,:,iCha), weight, factor);
+            if self.sigmaInVoxel > 0
+                factor = 1;
+                if nargin == 4
+                    factor = varargin{1};
+                end
+
+                nChannels = size(smoothed, 4);
+                for iCha = 1:nChannels
+                        smoothed(:,:,:,iCha) = self.smoothImplementation(smoothed(:,:,:,iCha), weight, factor);
+                end
             end
         end
     end
