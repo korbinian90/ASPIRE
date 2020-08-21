@@ -3,6 +3,12 @@ MRI phase combination algorithm for channels of an array-coils
 
 ASPIRE requires 2 * TE1 = TE2
 
+# Patent
+There is a patent on [ASPIRE](https://patents.google.com/patent/US10605885B2/en) and a license is required for commercial use.
+However, it is not a medical product, which means that the method may not be used for diagnosis in humans.
+
+For scientific purposes no licence is required and the method can be applied free of charge.
+
 # Installation
 Clone repository with git or download as ZIP file.
 
