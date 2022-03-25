@@ -13,10 +13,8 @@ For scientific purposes no licence is required and the method can be applied fre
 Clone repository with git or download as ZIP file.
 
 # Configuration
-Set the data location and parameters in aspire_custom.m
-
-Uncombined magnitude and phase as NIFTI file is required.
-
+Set the data location and parameters in aspire_custom.m  
+Uncombined magnitude and phase as NIFTI file is required.  
 The dimensions have to be [x, y, z, echo, channel].
 
 # Run ASPIRE
@@ -28,3 +26,5 @@ For the slice_by_slice option (low memory usage), fslmerge is required.
 # Advanced
 Experimental stuff in kFiles
 
+# Old version
+The version 1.6 can be accessed here: https://github.com/korbinian90/ASPIRE/tree/old_github
