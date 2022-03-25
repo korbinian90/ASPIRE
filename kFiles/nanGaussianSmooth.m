@@ -5,10 +5,6 @@ function smoothed_image = nanGaussianSmooth(input_image, sigma, mask)
 
     % number of box filterings
     n_box = 4;
-
-    if all(isfinite(input_image(:)))
-        warning('NanGaussianSmoother: There are no Inf/NaN values in input data!');
-    end
     
     dimension = size(input_image);
     
