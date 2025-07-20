@@ -211,6 +211,7 @@ classdef FlexibleStorage < handle
             if length(fieldName) > maxLen
                 fieldName = fieldName((end - maxLen + 1):end);
             end
+            fieldName = ['a' fieldName]; % force first character to be valid
         end
         
         function [precision, bitpix] = getPrecision(~, image)
