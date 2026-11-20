@@ -1,4 +1,7 @@
 # ASPIRE / MCPC-3D-S for MATLAB
+
+> **Research use only. Not a medical device. Not intended for diagnosis, treatment or clinical decisions.**
+
 MRI phase combination algorithm for combining channels of array-coils
 
 ASPIRE requires 2 * TE1 = TE2
